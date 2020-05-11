@@ -68,9 +68,9 @@ if __name__ == '__main__' :
 
    ghist = resample_similar_lico( hist, nresamples=10, nonnegative=True, keeppercentage=0.1,whitenoisefactor=0.0)
    fhist = resample_similar_fourier_noise( hist, nresamples=20, nonnegative=False, keeppercentage=1.,whitenoisefactor=0.)
-   mhist = migrations(hist, 10, 0.05)
+   mhist = migrations(hist, 2, 0.05)
 
    print("Used ", hist.shape[0], " histograms to generate: \n", ghist.shape[0], " new histograms using linear combinations of similar histograms, \n", mhist.shape[0], " histograms using migrations, \n", fhist.shape[0], " histograms using fourier noise\n")
 
-   output = np.concatenate((hist, ghist, fhist, mhist))
+   output = np.concatenate((mhist, ghist, fhist))
    np.savetxt(outputfile, output, delimiter=",")
