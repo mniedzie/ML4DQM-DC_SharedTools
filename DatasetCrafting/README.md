@@ -13,4 +13,5 @@ cks the ones from Golden Json, and generates
 * 10 histograms using linear combinations of similar histograms
 * 20 histograms using Fourier noise
 * double the amount of the initial histograms using migrations
+
 These numbers are fully arbitrary, and the three modifications are applied independently, not stacked. The output csv file is generated with all histograms saved as arrays.

@@ -20,7 +20,6 @@ from sklearn.preprocessing import normalize
 import math
 import random as rn
 
-#from resamplers import *
 from data_handling import *
 from generators import *
 from plotters import *
@@ -53,7 +52,8 @@ if __name__ == '__main__' :
    # read in the csv file, and if Json and DSC info is not there, insert it.
    # Warning: the Golden and Bad json files are hard coded in the function!
 
-   df = read_csv(inputfile, 50)
+   df = read_csv(inputfile, -1)
+   df_subset = read_csv(inputfile, 20)
    print('Input dataframe shape: ', df.shape )
 
    # I keep the histogtrams for golden (run,ls), can be omitted/modified to keep DSCon
@@ -63,14 +63,30 @@ if __name__ == '__main__' :
 
    (hist,runnbs,lsnbs) = get_hist_values(df)
 
-   hist = hist[:,1:-1]
-   hist = normalize(hist, norm='l1', axis=1) #normalise the sample, i.e the rows
+#   hist = hist[:,1:-1]
+#   hist = normalize(hist, norm='l1', axis=1) #normalise the sample, i.e the rows
+   mcHist = mc_sampling( hist )
 
-   ghist = resample_similar_lico( hist, nresamples=10, nonnegative=True, keeppercentage=0.1,whitenoisefactor=0.0)
-   fhist = resample_similar_fourier_noise( hist, nresamples=20, nonnegative=False, keeppercentage=1.,whitenoisefactor=0.)
-   mhist = migrations(hist, 2, 0.05)
 
-   print("Used ", hist.shape[0], " histograms to generate: \n", ghist.shape[0], " new histograms using linear combinations of similar histograms, \n", mhist.shape[0], " histograms using migrations, \n", fhist.shape[0], " histograms using fourier noise\n")
 
-   output = np.concatenate((mhist, ghist, fhist))
-   np.savetxt(outputfile, output, delimiter=",")
+
+
+
+
+
+
+#   colors = [cm.viridis(i) for i in np.linspace(0, 1, len( mcHist ))]
+#   for i in range(len(mcHist)):
+#      plt.plot(mcHist[i], color=colors[i])
+#   plt.plot(hist[0], color='red')
+#   plt.title('histograms generated with MC')
+#   plt.show()
+#
+#   ghist = resample_similar_lico( hist, nresamples=10, nonnegative=True, keeppercentage=0.1,whitenoisefactor=0.0)
+#   fhist = resample_similar_fourier_noise( hist, nresamples=20, nonnegative=False, keeppercentage=1.,whitenoisefactor=0.)
+#   mhist = migrations(hist, 2, 0.05)
+#
+#   print("Used ", hist.shape[0], " histograms to generate: \n", ghist.shape[0], " new histograms using linear combinations of similar histograms, \n", mhist.shape[0], " histograms using migrations, \n", fhist.shape[0], " histograms using fourier noise\n")
+#
+#   output = np.concatenate((mhist, ghist, fhist))
+#   np.savetxt(outputfile, output, delimiter=",")

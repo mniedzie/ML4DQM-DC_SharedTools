@@ -378,3 +378,27 @@ def migrations(ihists, quantity, rate):
       temp = gen_migrations(ihists[i], quantity, rate )
       output = np.concatenate((output,temp))
    return output
+
+
+def mc_sampling(hists, nMC=10000 , nCopies=10):
+    ### resampling of a histogram using MC methods
+    # Drawing random points from a space defined by the range of the histogram in all axes.
+    # Points are "accepted" if the fall under the sampled histogram:
+    # f(x) - sampled distribution
+    # x_r, y_r -> randomly sampled point
+    # if y_r<=f(x_r), fill the new distribution at bin corresponding to x_r with weight:
+    # weight = (sum of input hist)/(#mc points accepted)
+    # this is equal to 
+    # weight = (MC space volume)/(# all MC points)
+    (nHists,nBins) = hists.shape
+    output = np.asarray( [ np.asarray([0.]*nBins) for _ in range(nHists*nCopies)])
+    for i in range(nHists):
+       for j in range(nCopies):
+#       norm = np.sum(hists[i])/(nbins*np.max(hists[i]))
+          weight = nBins*np.max(hists[i])/nMC
+          for _ in range(nMC):
+             x_r=rn.randrange(nBins)
+             y_r=rn.random()*np.max(hists[i])
+             if( y_r <= hists[i][x_r]):
+                output[i*nCopies+j][x_r]+=weight
+    return output
