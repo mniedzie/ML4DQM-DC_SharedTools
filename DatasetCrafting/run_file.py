@@ -57,18 +57,23 @@ if __name__ == '__main__' :
    print('Input dataframe shape: ', df.shape )
 
    # I keep the histogtrams for golden (run,ls), can be omitted/modified to keep DSCon
-   df = df.loc[ df['Json'] == True ]
+   df_subset = df_subset.loc[ df['Json'] == True ]
    print('Input golden dataframe shape: ', df.shape )
 
 
    (hist,runnbs,lsnbs) = get_hist_values(df)
+   (hist_subset,runnbs_subset,lsnbs_subset) = get_hist_values(df_subset)
 
 #   hist = hist[:,1:-1]
 #   hist = normalize(hist, norm='l1', axis=1) #normalise the sample, i.e the rows
    mcHist = mc_sampling( hist )
 
 
-
+# The lines below can be used to save the output to a simple csv file. 
+#   print("Used ", hist.shape[0], " histograms to generate: \n", ghist.shape[0], " new histograms using linear combinations of similar histograms, \n", mhist.shape[0], " histograms using migrations, \n", fhist.shape[0], " histograms using fourier noise\n")
+#
+#   output = np.concatenate((mhist, ghist, fhist))
+#   np.savetxt(outputfile, output, delimiter=",")
 
 
 
@@ -86,7 +91,3 @@ if __name__ == '__main__' :
 #   fhist = resample_similar_fourier_noise( hist, nresamples=20, nonnegative=False, keeppercentage=1.,whitenoisefactor=0.)
 #   mhist = migrations(hist, 2, 0.05)
 #
-#   print("Used ", hist.shape[0], " histograms to generate: \n", ghist.shape[0], " new histograms using linear combinations of similar histograms, \n", mhist.shape[0], " histograms using migrations, \n", fhist.shape[0], " histograms using fourier noise\n")
-#
-#   output = np.concatenate((mhist, ghist, fhist))
-#   np.savetxt(outputfile, output, delimiter=",")
