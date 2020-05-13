@@ -1,3 +1,4 @@
+import os
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import cm # import colormaps
@@ -61,6 +62,9 @@ def plot_data_good_bad(nplot,rhist,ghist,bhist,figname='fig.png'):
     # - figname: name of figure to plot
     # REPLACED BY PLOT_DATA_AND_GEN, DO NOT USE ANYMORE
 
+    # make sure that figname contains absolute path
+    figname = os.path.abspath(figname)
+
     # data
     randint = np.random.choice(np.arange(len(rhist)),size=min(len(rhist),nplot),replace=False)
     plt.figure()
@@ -87,6 +91,9 @@ def plot_data_and_gen(nplot,datahist,genhist,figname='fig.png'):
     # - datahist, genhist: numpy arrays of shape (nhists,nbins)
     # - figname: name of figure to plot
 
+    # make sure that figname contains absolute path
+    figname = os.path.abspath(figname)
+
     # data
     randint = np.random.choice(np.arange(len(datahist)),size=min(len(datahist),nplot),replace=False)
     plt.figure()
@@ -104,6 +111,10 @@ def plot_data_and_gen(nplot,datahist,genhist,figname='fig.png'):
 def plot_noise(noise,histstd=None,figname='fig.png'):
     # plot histograms in noise (numpy array of shape (nhists,nbins))
     # optional argument histstd plots +- histstd as boundaries
+
+    # make sure that figname contains absolute path
+    figname = os.path.abspath(figname)
+
     plt.figure()
     for i in range(len(noise)): plt.plot(noise[i,:],'r--')
     if histstd is not None:
