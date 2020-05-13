@@ -14,35 +14,51 @@ import json
 from ast import literal_eval
 from plotters import *
 
-def resample_similar_lico(rhist,doplot=True,nresamples=0,nonnegative=False,keeppercentage=1.,whitenoisefactor=0.):
+def resample_similar_lico(allhists,selhists,outfilename='',figname='',nresamples=1,nonnegative=False,
+			    keeppercentage=1.,whitenoisefactor=0.):
     # take linear combinations of similar histograms
+    # input arguments:
+    # - allhists: 2D np array (nhists,nbins) with all available histograms, used to take linear combinations
+    # - selhists: 2D np array (nhists,nbins) with selected hists used for seeding (e.g. 'good' histograms)
+    # - outfilename: path to csv file to write result to (default: no writing)
+    # - figname: path to figure plotting examples (defautl: no plotting)
+    # - nresamples: number of combinations to make per input histogram
+    # - nonnegative: boolean whether to make all final histograms nonnegative
+    # - keeppercentage: percentage (between 0. and 100.) of histograms in allhists to use per input histogram
+    # - whitenoisefactor: relative fraction (between 0. and 1.) of white noise amplitude to add
 
     # advantages: no assumptions on noise
     # disadvantages: sensitive to outlying histograms (more than with averaging)
     
-    # set some parameters
-    if nresamples==0: nresamples=int(len(rhist)/10)
-    (nhists,nbins) = rhist.shape
+    # get some parameters
+    if(len(allhists.shape)!=len(selhists.shape) or allhists.shape[1]!=selhists.shape[1]):
+	print('### ERROR ###: shapes of allhists and selhists not compatible.')
+	return
+    (nhists,nbins) = allhists.shape
+    (nsel,_) = selhists.shape
     
     # get array of moments (used to define similar histograms)
     binwidth = 1./nbins
     bincenters = np.linspace(binwidth/2,1-binwidth/2,num=nbins,endpoint=True)
     orders = [0,1,2]
-    moments = np.zeros((nhists,len(orders)))
-    for i,j in enumerate(orders): moments[:,i] = moment(bincenters,rhist,j)
+    allmoments = np.zeros((nhists,len(orders)))
+    for i,j in enumerate(orders): allmoments[:,i] = moment(bincenters,allhists,j)
+    selmoments = np.zeros((nsel,len(orders)))
+    for i,j in enumerate(orders): selmoments[:,i] = moment(bincenters,selhists,j)
     
     # make resampled histograms
-    ghist = np.zeros((nresamples,nbins))
-    randint = np.random.choice(np.arange(0,len(rhist)),size=nresamples,replace=True)
-    for i,j in enumerate(randint):
+    reshists = np.zeros((nsel*nresamples,nbins))
+    for i in range(nsel):
         # select similar histograms
-        thisdiff = moments_correlation_vector(moments,j)
-        #thisdiff = mse_correlation_vector(rhist,j)
+        thisdiff = moments_correlation_vector(np.vstack((selmoments[i],allmoments)),0)[1:]
+        #thisdiff = mse_correlation_vector(np.vstack((selhists[i],allhists)),0)[1:]
         threshold = np.percentile(thisdiff,keeppercentage)
         simindices = np.nonzero(np.where(thisdiff<threshold,1,0))[0]
-        ghist[i,:] = random_lico(rhist[simindices,:])
-        ghist[i,:] += whitenoise(nbins,ghist[i,:]*whitenoisefactor)
-        if nonnegative: ghist[i,:] = np.maximum(0,ghist[i,:])
+	for j in range(nresamples):
+	    reshists[nresamples*i+j,:] = random_lico(allhists[simindices,:])
+	    reshists[nresamples*i+j,:] += whitenoise(nbins,reshists[nresamples*i+j,:]*whitenoisefactor)
+    if nonnegative: reshists = np.maximum(0,reshists)
+    np.random.shuffle(reshists)
     nsim = len(simindices)
     print('Note: linear combination is taken between '+str(nsim)+' histograms.')
     print('If this number is too low, histograms might be too similar for combination to have effect.')
@@ -50,181 +66,204 @@ def resample_similar_lico(rhist,doplot=True,nresamples=0,nonnegative=False,keepp
         
     # plot examples of good and bad histograms
     # use only those histograms from real data that were used to create the resamples
-    if doplot: plot_data_good_bad(50,rhist[randint],ghist,np.array([[0]]))
+    if len(figname)>0: plot_data_and_gen(50,allhists,reshists,figname)
         
-    return ghist
+    # store results if requested
+    if len(outfilename)>0: np.savetxt(outfilename.split('.')[0]+'.csv',reshists)
+
+    return reshists
 
 
-def resample_similar_fourier_noise(rhist,doplot=True,nresamples=0,nonnegative=False,keeppercentage=1.,whitenoisefactor=0.):
+def resample_similar_fourier_noise(allhists,selhists,outfilename='',figname='',nresamples=0,nonnegative=False,
+				    keeppercentage=1.,whitenoisefactor=0.):
     # apply fourier noise on mean histogram, 
     # where the mean is determined from a set of similar-looking histograms
     # input args:
-    # - rhist: numpy array of shape (nhists,nbins)
-    # - doplot: boolean whether or not to do some plotting
-    # - nresamples: number of samples to be drawn
+    # - allhists: np array (nhists,nbins) containing all available histograms (to determine mean)
+    # - selhists: np array (nhists,nbins) conataining selected histograms used as seeds (e.g. 'good' histograms)
+    # - outfilename: path of csv file to write results to (default: no writing)
+    # - figname: path to figure plotting examples (default: no plotting)
+    # - nresamples: number of samples per input histogram in selhists
     # - nonnegative: boolean whether or not to put all bins to minimum zero after applying noise
-    # - keeppercentage: percentage (between 1 and 100) of histograms in rhist that are 'similar' to a given histogram
-    # - whitenoisefactor: factor (between 0 and 1) of white noise amplitude (relative to histogram bin content)
+    # - keeppercentage: percentage (between 1 and 100) of histograms in allhists to use per input histogram
+    # - whitenoisefactor: factor (between 0 and 1) of white noise amplitude to add
 
     # advantages: most of fourier_noise_on_mean but can additionally handle shifting histograms,
     #             apart from fourier noise, also white noise can be applied.
     # disadvantages: does not filter out odd histograms as long as enough other odd histograms look more or less similar
     
-    # set some parameters
-    if nresamples==0: nresamples=int(len(rhist)/10)
-    (nhists,nbins) = rhist.shape
-    
+    # get some parameters
+    if(len(allhists.shape)!=len(selhists.shape) or allhists.shape[1]!=selhists.shape[1]):
+        print('### ERROR ###: shapes of allhists and selhists not compatible.')
+        return
+    (nhists,nbins) = allhists.shape
+    (nsel,_) = selhists.shape
+
     # get array of moments (used to define similar histograms)
     binwidth = 1./nbins
     bincenters = np.linspace(binwidth/2,1-binwidth/2,num=nbins,endpoint=True)
     orders = [0,1,2]
-    moments = np.zeros((nhists,len(orders)))
-    for i,j in enumerate(orders): moments[:,i] = moment(bincenters,rhist,j)
-    
-    # make resamples
-    ghist = np.zeros((nresamples,nbins))
-    randint = np.random.choice(np.arange(0,len(rhist)),size=nresamples,replace=True)
-    for i,j in enumerate(randint):
+    allmoments = np.zeros((nhists,len(orders)))
+    for i,j in enumerate(orders): allmoments[:,i] = moment(bincenters,allhists,j)
+    selmoments = np.zeros((nsel,len(orders)))
+    for i,j in enumerate(orders): selmoments[:,i] = moment(bincenters,selhists,j)
+ 
+    # make resampled histograms
+    reshists = np.zeros((nsel*nresamples,nbins))
+    for i in range(nsel):
         # select similar histograms
-        thisdiff = moments_correlation_vector(moments,j)
-        #thisdiff = mse_correlation_vector(rhist,j)
+        thisdiff = moments_correlation_vector(np.vstack((selmoments[i],allmoments)),0)[1:]
+        #thisdiff = mse_correlation_vector(np.vstack((selhists[i],allhists)),0)[1:]
         threshold = np.percentile(thisdiff,keeppercentage)
         simindices = np.nonzero(np.where(thisdiff<threshold,1,0))[0]
-        ghist[i,:] = fourier_noise_on_mean(rhist[simindices,:],doplot=False,
-                                         ngood=1,nbad=1,nonnegative=nonnegative)[0][0,:]
-        ghist[i,:] += whitenoise(nbins,ghist[i,:]*whitenoisefactor)
-        if nonnegative: ghist[i,:] = np.maximum(0,ghist[i,:])
+        for j in range(nresamples):
+            reshists[nresamples*i+j,:] = fourier_noise_on_mean(allhists[simindices,:],
+						figname='',nresamples=1,nonnegative=nonnegative)[0,:]
+            reshists[nresamples*i+j,:] += whitenoise(nbins,reshists[nresamples*i+j,:]*whitenoisefactor)
+    if nonnegative: reshists = np.maximum(0,reshists)
+    np.random.shuffle(reshists)
     nsim = len(simindices)
     print('Note: mean and std calculation is performed on '+str(nsim)+' histograms.')
     print('If this number is too low, histograms might be too similar for averaging to have effect.')
     print('If this number is too high, systematic shifts of histogram shapes are included into the averaging.')
-        
+
     # plot examples of good and bad histograms
     # use only those histograms from real data that were used to create the resamples
-    if doplot: plot_data_good_bad(50,rhist[randint],ghist,np.array([[0]]))
-        
-    return ghist
+    if len(figname)>0: plot_data_and_gen(50,allhists,reshists,figname)
 
-def resample_bin_per_bin(rhist,doplot=True,nresamples=0,nonnegative=False,smoothinghalfwidth=0):
+    # store results if requested
+    if len(outfilename)>0: np.savetxt(outfilename.split('.')[0]+'.csv',reshists)
+
+    return reshists
+
+
+def resample_bin_per_bin(hists,outfilename='',figname='',nresamples=0,nonnegative=False,smoothinghalfwidth=0):
     # do resampling from bin-per-bin probability distributions
+    # input args:
+    # - hists: np array (nhists,nbins) containing the histograms to draw new samples from
+    # - outfilename: path to csv file to write results to (default: no writing)
+    # - figname: path to figure plotting examples (default: no plotting)
+    # - nresamples: number of samples to draw (default: 1/10 of number of input histograms)
+    # - nonnegative: boolean whether or not to put all bins to minimum zero after applying noise
+    # - smoothinghalfwidth: halfwidth of smoothing procedure to apply on the result (default: no smoothing)
 
     # advantages: no arbitrary noise modeling
     # disadvantages: bins are considered independent, shape of historams not taken into account,
     #                does not work well on small number of input histograms, 
     #                does not work well on histograms with systematic shifts
-    # mostly deprecated, do not use this method.
     
-    if nresamples==0: nresamples=int(len(rhist)/10)
-    nbins = rhist.shape[1]
+    if nresamples==0: nresamples=int(len(hists)/10)
+    nbins = hists.shape[1]
     
     # generate data
-    ghist = np.zeros((nresamples,nbins))
+    reshists = np.zeros((nresamples,nbins))
     for i in range(nbins):
-        col = np.random.choice(rhist[:,i],size=nresamples,replace=True)
-        ghist[:,i] = col
+        col = np.random.choice(hists[:,i],size=nresamples,replace=True)
+        reshists[:,i] = col
         
     # apply smoothing to compensate partially for bin independence
-    if smoothinghalfwidth>0: ghist = smoother(ghist,halfwidth=smoothinghalfwidth)
+    if smoothinghalfwidth>0: reshists = smoother(reshists,halfwidth=smoothinghalfwidth)
 
     # plot examples of good and bad histograms
-    if doplot: plot_data_good_bad(50,rhist,ghist,np.array([[0]]))
+    if len(figname)>0: plot_data_and_gen(50,hists,reshists,figname)
     
-    return ghist
+    # store results if requested
+    if len(outfilename)>0: np.savetxt(outfilename.split('.')[0]+'.csv',reshists)
+
+    return reshists
 
 
-
-def fourier_noise_on_mean(rhist,doplot=True,ngood=0,nbad=0,nonnegative=False):
+def fourier_noise_on_mean(hists,outfilename='',figname='',nresamples=0,nonnegative=False):
     # apply fourier noise on the bin-per-bin mean histogram,
     # with amplitude scaling based on bin-per-bin std histogram.
     # input args:
-    # - rhist: numpy array of shape (nhists,nbins)
-    # - doplot: boolean whether to do some plotting
-    # - ngood and nbad: integers, number of samples to draw with 'good' and 'bad' noise
+    # - hists: numpy array of shape (nhists,nbins) used for determining mean and std
+    # - outfilename: path to csv file to write results to (default: no writing)
+    # - figname: path to figure plotting examples (default: no plotting)
+    # - nresamples: number of samples to draw (default: number of input histograms / 10)
     # - nonnegative: boolean whether to set all bins to minimum zero after applying noise
+    # MOSTLY SUITABLE AS HELP FUNCTION FOR RESAMPLE_SIMILAR_FOURIER_NOISE, NOT AS GENERATOR IN ITSELF
 
     # advantages: mean histogram is almost certainly 'good' because of averaging, eliminate bad histograms
     # disadvantages: deviations from mean are small, does not model systematic shifts by lumi.
     
-    if ngood==0: ngood=int(len(rhist)/10)
-    if nbad==0: nbad=int(len(rhist)/10)
+    if nresamples==0: nresamples=int(len(hists)/10)
 
     # get mean and std histogram
-    histmean = np.mean(rhist,axis=0)
-    histstd = np.std(rhist,axis=0)
+    histmean = np.mean(hists,axis=0)
+    histstd = np.std(hists,axis=0)
     nbins = len(histmean)
 
     # plot examples of histograms mean, and std
-    if doplot:
-        nplot = min(200,len(rhist))
-        flatindex = np.linspace(0,len(rhist),num=len(rhist),endpoint=False)
-        randint = np.random.choice(flatindex,size=nplot,replace=False)
+    if len(figname)>0:
+        nplot = min(200,len(hists))
+        randint = np.random.choice(np.arange(len(hists)),size=nplot,replace=False)
         plt.figure()
-        for i in randint: plt.plot(rhist[int(i),:],color='b',alpha=1)
+        for i in randint: plt.plot(hists[int(i),:],color='b',alpha=0.1)
         plt.plot(histmean,color='black',label='mean')
         plt.plot(histmean-histstd,color='r',label='pm 1 std')
         plt.plot(histmean+histstd,color='r')
         plt.legend()
+	plt.savefig(figname.split('.')[0]+'_meanstd.png')
     
     # generate data
-    ghist = np.zeros((ngood,nbins))
-    bhist = np.zeros((nbad,nbins))
-    for i in range(ngood): ghist[i,:] = histmean+goodnoise(nbins,histstd)
-    for i in range(nbad): bhist[i,:] = histmean+badnoise(nbins,histstd)
+    reshists = np.zeros((nresamples,nbins))
+    for i in range(nresamples): reshists[i,:] = histmean+goodnoise(nbins,histstd)
     if nonnegative:
-        ghist = np.where(ghist>0,ghist,0)
-        bhist = np.where(bhist>0,bhist,0)
+        reshists = np.where(reshists>0,reshists,0)
         
     # plot examples of good and bad histograms
-    if doplot: 
+    if len(figname)>0:
         noise_examples = []
         for i in range(5): noise_examples.append(goodnoise(nbins,histstd))
-        plot_noise(np.array(noise_examples),histstd)
-        plot_data_good_bad(50,rhist,ghist,bhist)
+        plot_noise(np.array(noise_examples),histstd,figname)
+        plot_data_and_gen(50,hists,reshists,figname)
+
+    # store results if requested
+    if len(outfilename)>0: np.savetxt(outfilename.split('.')[0]+'.csv',reshists)
     
-    return (ghist,bhist) 
+    return reshists
 
 
-
-
-def fourier_noise_on_random(rhist,doplot=True,ngood=0,nbad=0,nonnegative=False):
+def fourier_noise(hists,outfilename='',figname='',nresamples=1,nonnegative=False,stdfactor=15.):
     # apply fourier noise on randomly chosen histograms,
     # with simple flat amplitude scaling.
-    # input args: similar to fourier_noise_on_mean
+    # input args: 
+    # - hists: numpy array of shape (nhists,nbins) used for seeding
+    # - outfilename: path to csv file to write results to (default: no writing)
+    # - figname: path to figure plotting examples (default: no plotting)
+    # - nresamples: number of samples to draw per input histogram
+    # - nonnegative: boolean whether to set all bins to minimum zero after applying noise
+    # - stdfactor: factor to scale magnitude of noise (larger factor = smaller noise)
 
-    # advantages: resampled histograms will have statistically same features as original
-    # disadvantages: also 'bad' histograms will be resampled
+    # advantages: resampled histograms will have statistically same features as original input set
+    # disadvantages: also 'bad' histograms will be resampled if included in hists
     
-    if ngood==0: ngood=int(len(rhist)/10)
-    if nbad==0: nbad=int(len(rhist)/10)
-    nbins = rhist.shape[1]
-    # use histogram/stdfactor as std histogram...
-    # the value is obtained by comparing distributions of real and resampled stable histograms.
-    # so far cannot use sqrt(histogram) (i.e. poisson error) since normalized histograms are used.
-    stdfactor = 15. 
+    (nhists,nbins) = hists.shape
     
     # generate data
-    ghist = np.zeros((ngood,nbins))
-    bhist = np.zeros((nbad,nbins))
-    randint_good = np.random.choice(np.arange(0,len(rhist)),size=ngood,replace=True)
-    for i,j in enumerate(randint_good): ghist[i,:] = rhist[j,:]+goodnoise(nbins,rhist[j,:]/stdfactor)
-    randint_bad = np.random.choice(np.arange(0,len(rhist)),size=nbad,replace=True)
-    for i,j in enumerate(randint_bad): bhist[i,:] = rhist[j,:]+badnoise(nbins,rhist[j,:]/stdfactor)
+    reshists = np.zeros((nresamples*len(hists),nbins))
+    for i in range(nhists):
+	for j in range(nresamples):
+	    reshists[nresamples*i+j,:] = hists[i,:]+goodnoise(nbins,hists[i,:]/stdfactor)
     if nonnegative:
-        ghist = np.where(ghist>0,ghist,0)
-        bhist = np.where(bhist>0,bhist,0)
-        
+        reshists = np.where(reshists>0,reshists,0)
+    np.random.shuffle(reshists)
+
     # plot examples of good and bad histograms
-    if doplot: 
+    if len(figname)>0: 
         noise_examples = []
-        for i in range(5): noise_examples.append(goodnoise(nbins,rhist[randint_good[-1],:]/10.))
-        plot_noise(np.array(noise_examples),rhist[randint_good[-1],:]/10.)
-        plot_data_good_bad(50,rhist[randint_good,:],ghist,bhist)
+        for i in range(5): noise_examples.append(goodnoise(nbins,hists[-1,:]/stdfactor))
+        plot_noise(np.array(noise_examples),hists[-1,:]/stdfactor,figname)
+        plot_data_and_gen(50,hists,reshists,figname)
     
-    return (ghist,bhist)
+    # store results if requested
+    if len(outfilename)>0: np.savetxt(outfilename.split('.')[0]+'.csv',reshists)
+
+    return reshists
 
 
 # functions for calculating moments of a histogram
-
 def moment(bins,counts,order):
     ### get n-th central moment of a histogram
     # - bins is a 1D or 2D np array holding the bin centers
@@ -281,7 +320,7 @@ def badnoise(nbins,fstd=None):
     # generate one sample of 'bad' noise consisting of fourier components
     # (higher frequency and amplitude than 'good' noise)
     # input args and output: simlar to goodnoise
-    # WARNING: this noise is not representative of the 'bad' histograms to be expected!
+    # WARNING: NOT NECESSARILY REPRESENTATIVE OF ANOMALIES TO BE EXPECTED, DO NOT USE
     ampscale = 10. # additional amplitude scaling
     kmaxscale = 1. # additional scaling of max frequency
     kminoffset = 0.5 # additional scaling of min frequency
@@ -333,6 +372,15 @@ def mse_correlation_vector(hists,index):
     temp = np.power(temp,2)
     corvec = np.mean(temp,axis=1)
     return corvec
+
+def smoother(inarray,halfwidth):
+    # smooth the rows of a 2D array using the 2*halfwidth+1 surrounding values.
+    outarray = np.zeros(inarray.shape)
+    nbins = inarray.shape[1]
+    for j in range(nbins):
+        crange = np.arange(max(0,j-halfwidth),min(nbins,j+halfwidth+1))
+        outarray[:,j] = np.sum(inarray[:,crange],axis=1)/len(crange)
+    return outarray
 
 def gen_Nshifts( input_hist, n_copies ):
    # for input_hist ogram generate n_copies which with random noise

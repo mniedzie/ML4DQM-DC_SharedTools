@@ -53,29 +53,55 @@ def plotOrig(reference ):
 
 ### plot functions
 
-def plot_data_good_bad(nplot,rhist,ghist,bhist):
+def plot_data_good_bad(nplot,rhist,ghist,bhist,figname='fig.png'):
     # plot a couple of random examples from rhist (data), ghist (resampled 'good') and bhist (resampled 'bad')
     # input:
     # - nplot: integer, number of examples to plot
     # - rhist, ghist, bhist: numpy arrays of shape (nhists,nbins)
+    # - figname: name of figure to plot
+    # REPLACED BY PLOT_DATA_AND_GEN, DO NOT USE ANYMORE
 
     # data
     randint = np.random.choice(np.arange(len(rhist)),size=min(len(rhist),nplot),replace=False)
     plt.figure()
     for i in randint: plt.plot(rhist[i,:],color='r')
     plt.title('histograms from real data')
+    plt.savefig(figname.split('.')[0]+'_data.png')
     # artificial good histograms
     randint = np.random.choice(np.arange(len(ghist)),size=min(len(ghist),nplot),replace=False)
     plt.figure()
     for i in randint: plt.plot(ghist[int(i),:],color='b')
     plt.title('artificial good histograms')
+    plt.savefig(figname.split('.')[0]+'_good.png')
     # artificial bad histograms
     randint = np.random.choice(np.arange(len(bhist)),size=min(len(bhist),nplot),replace=False)
     plt.figure()
     for i in randint[:10]: plt.plot(bhist[int(i),:],color='b')
     plt.title('artificial bad histograms')
+    plt.savefig(figname.split('.')[0]+'_bad.png')
 
-def plot_noise(noise,histstd=None):
+def plot_data_and_gen(nplot,datahist,genhist,figname='fig.png'):
+    # plot a couple of random examples from rhist (data), ghist (resampled 'good') and bhist (resampled 'bad')
+    # input:
+    # - nplot: integer, maximum number of examples to plot
+    # - datahist, genhist: numpy arrays of shape (nhists,nbins)
+    # - figname: name of figure to plot
+
+    # data
+    randint = np.random.choice(np.arange(len(datahist)),size=min(len(datahist),nplot),replace=False)
+    plt.figure()
+    for i in randint: plt.plot(datahist[i,:],color='r')
+    plt.title('histograms from data')
+    plt.savefig(figname.split('.')[0]+'_data.png')
+    # artificial histograms
+    randint = np.random.choice(np.arange(len(genhist)),size=min(len(genhist),nplot),replace=False)
+    plt.figure()
+    for i in randint: plt.plot(genhist[int(i),:],color='b')
+    plt.title('artificially generated histograms')
+    plt.savefig(figname.split('.')[0]+'_gen.png')
+
+
+def plot_noise(noise,histstd=None,figname='fig.png'):
     # plot histograms in noise (numpy array of shape (nhists,nbins))
     # optional argument histstd plots +- histstd as boundaries
     plt.figure()
@@ -85,3 +111,4 @@ def plot_noise(noise,histstd=None):
         plt.plot(-histstd,'k--')
     plt.legend()
     plt.title('examples of noise')
+    plt.savefig(figname.split('.')[0]+'_noise.png')
