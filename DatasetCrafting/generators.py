@@ -16,8 +16,8 @@ from plotters import *
 
 ##### RESAMPLING METHODS #####
 
-def resample_similar_lico(allhists,selhists,outfilename='',figname='',nresamples=1,nonnegative=False,
-			    keeppercentage=1.,whitenoisefactor=0.):
+def resample_similar_lico( allhists, selhists, outfilename='', figname='', nresamples=1, nonnegative=False,
+                          keeppercentage=1.):
     # take linear combinations of similar histograms
     # input arguments:
     # - allhists: 2D np array (nhists,nbins) with all available histograms, used to take linear combinations
@@ -27,15 +27,14 @@ def resample_similar_lico(allhists,selhists,outfilename='',figname='',nresamples
     # - nresamples: number of combinations to make per input histogram
     # - nonnegative: boolean whether to make all final histograms nonnegative
     # - keeppercentage: percentage (between 0. and 100.) of histograms in allhists to use per input histogram
-    # - whitenoisefactor: relative fraction (between 0. and 1.) of white noise amplitude to add
 
     # advantages: no assumptions on noise
     # disadvantages: sensitive to outlying histograms (more than with averaging)
     
     # get some parameters
     if(len(allhists.shape)!=len(selhists.shape) or allhists.shape[1]!=selhists.shape[1]):
-	print('### ERROR ###: shapes of allhists and selhists not compatible.')
-	return
+        print('### ERROR ###: shapes of allhists and selhists not compatible.')
+        return
     (nhists,nbins) = allhists.shape
     (nsel,_) = selhists.shape
     
@@ -56,9 +55,8 @@ def resample_similar_lico(allhists,selhists,outfilename='',figname='',nresamples
         #thisdiff = mse_correlation_vector(np.vstack((selhists[i],allhists)),0)[1:]
         threshold = np.percentile(thisdiff,keeppercentage)
         simindices = np.nonzero(np.where(thisdiff<threshold,1,0))[0]
-	for j in range(nresamples):
-	    reshists[nresamples*i+j,:] = random_lico(allhists[simindices,:])
-	    reshists[nresamples*i+j,:] += whitenoise(nbins,reshists[nresamples*i+j,:]*whitenoisefactor)
+    for j in range(nresamples):
+        reshists[nresamples*i+j,:] = random_lico(allhists[simindices,:])
     if nonnegative: reshists = np.maximum(0,reshists)
     np.random.shuffle(reshists)
     nsim = len(simindices)
@@ -76,8 +74,8 @@ def resample_similar_lico(allhists,selhists,outfilename='',figname='',nresamples
     return reshists
 
 
-def resample_similar_fourier_noise(allhists,selhists,outfilename='',figname='',nresamples=0,nonnegative=False,
-				    keeppercentage=1.,whitenoisefactor=0.):
+def resample_similar_fourier_noise( allhists, selhists, outfilename='', figname='', nresamples=0, nonnegative=False,
+                                   keeppercentage=1.):
     # apply fourier noise on mean histogram, 
     # where the mean is determined from a set of similar-looking histograms
     # input args:
@@ -88,7 +86,6 @@ def resample_similar_fourier_noise(allhists,selhists,outfilename='',figname='',n
     # - nresamples: number of samples per input histogram in selhists
     # - nonnegative: boolean whether or not to put all bins to minimum zero after applying noise
     # - keeppercentage: percentage (between 1 and 100) of histograms in allhists to use per input histogram
-    # - whitenoisefactor: factor (between 0 and 1) of white noise amplitude to add
 
     # advantages: most of fourier_noise_on_mean but can additionally handle shifting histograms,
     #             apart from fourier noise, also white noise can be applied.
@@ -120,8 +117,7 @@ def resample_similar_fourier_noise(allhists,selhists,outfilename='',figname='',n
         simindices = np.nonzero(np.where(thisdiff<threshold,1,0))[0]
         for j in range(nresamples):
             reshists[nresamples*i+j,:] = fourier_noise_on_mean(allhists[simindices,:],
-						figname='',nresamples=1,nonnegative=nonnegative)[0,:]
-            reshists[nresamples*i+j,:] += whitenoise(nbins,reshists[nresamples*i+j,:]*whitenoisefactor)
+                                                               figname='',nresamples=1,nonnegative=nonnegative)[0,:]
     if nonnegative: reshists = np.maximum(0,reshists)
     np.random.shuffle(reshists)
     nsim = len(simindices)
@@ -206,7 +202,7 @@ def fourier_noise_on_mean(hists,outfilename='',figname='',nresamples=0,nonnegati
         plt.plot(histmean-histstd,color='r',label='pm 1 std')
         plt.plot(histmean+histstd,color='r')
         plt.legend()
-	plt.savefig(figname.split('.')[0]+'_meanstd.png')
+        plt.savefig(figname.split('.')[0]+'_meanstd.png')
     
     # generate data
     reshists = np.zeros((nresamples,nbins))
@@ -226,7 +222,7 @@ def fourier_noise_on_mean(hists,outfilename='',figname='',nresamples=0,nonnegati
     
     return reshists
 
-def mc_sampling(hists, nMC=10000 , nCopies=10):
+def mc_sampling(hists, nMC=10000 , nresamples=10):
     ### resampling of a histogram using MC methods
     # Drawing random points from a space defined by the range of the histogram in all axes.
     # Points are "accepted" if the fall under the sampled histogram:
@@ -237,16 +233,16 @@ def mc_sampling(hists, nMC=10000 , nCopies=10):
     # this is equal to 
     # weight = (MC space volume)/(# all MC points)
     (nHists,nBins) = hists.shape
-    output = np.asarray( [ np.asarray([0.]*nBins) for _ in range(nHists*nCopies)])
+    output = np.asarray( [ np.asarray([0.]*nBins) for _ in range(nHists*nresamples)])
     for i in range(nHists):
-       for j in range(nCopies):
+       for j in range(nresamples):
 #       norm = np.sum(hists[i])/(nbins*np.max(hists[i]))
           weight = nBins*np.max(hists[i])/nMC
           for _ in range(nMC):
              x_r=rn.randrange(nBins)
              y_r=rn.random()*np.max(hists[i])
              if( y_r <= hists[i][x_r]):
-                output[i*nCopies+j][x_r]+=weight
+                output[i*nresamples+j][x_r]+=weight
     return output
 
 ##### NOISE METHODS #####
@@ -269,8 +265,8 @@ def fourier_noise(hists,outfilename='',figname='',nresamples=1,nonnegative=False
     # generate data
     reshists = np.zeros((nresamples*len(hists),nbins))
     for i in range(nhists):
-	for j in range(nresamples):
-	    reshists[nresamples*i+j,:] = hists[i,:]+goodnoise(nbins,hists[i,:]/stdfactor)
+        for j in range(nresamples):
+            reshists[nresamples*i+j,:] = hists[i,:]+goodnoise(nbins,hists[i,:]/stdfactor)
     if nonnegative:
         reshists = np.where(reshists>0,reshists,0)
     np.random.shuffle(reshists)
@@ -297,18 +293,22 @@ def white_noise(hists,stdfactor=15.):
     reshists = np.zeros(nhists,nbins)
 
     for i in range(nhists):
-        reshists[i,:] = hists[i,:] + whitenoise(nbins,hists[i,:]/stdfactor)
+        reshists[i,:] = hists[i,:] + np.multiply( np.random.normal(nbins), hists[i,:]/stdfactor)
 
     return reshists
 
-def migrations(ihists, quantity, rate):
+def migrations(ihists, quantity=1, rate=0.05):
+    # generate migrations between bins of the histograms
+    # quantity defines how many resampled copies oh histograms will be made
+    # rate limits the migration rate
 
-   (nhists,nbins) = ihists.shape
-   output = ihists
-   for i in range(nhists):
-      temp = gen_migrations(ihists[i], quantity, rate )
-      output = np.concatenate((output,temp))
-   return output
+    (nhists,nbins) = ihists.shape
+    output = ihists
+    for i in range(nhists):
+        temp = gen_migrations(ihists[i], quantity, rate )
+        if i==0: output = temp
+        else: output = np.concatenate((output,temp))
+    return output
 
 ##### HELP FUNCTIONS #####
 
@@ -453,8 +453,8 @@ def gen_migrations( input_hist, n_copies, rate ):
    length = len(input_hist)
    output  = np.asarray( [ input_hist for _ in range(n_copies)])
    for i in range(n_copies):
-      migr_up = np.asarray( [rn.gauss(0,rate) for _ in range(length)] )
-      migr_dw = np.asarray( [rn.gauss(0,rate) for _ in range(length)] )
+      migr_up = np.asarray( [abs(rn.gauss(0,rate)) for _ in range(length)] )
+      migr_dw = np.asarray( [abs(rn.gauss(0,rate)) for _ in range(length)] )
       temp = np.asarray([0.]*length)
       for j in range(length):
          if ( (j > 0) and (j<length-1) ): 

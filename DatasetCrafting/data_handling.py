@@ -19,8 +19,11 @@ def read_csv(csv_file, rn_samples=-1):
         print('requested csv file '+csv_file+' does not seem to exist...')
     df = pd.read_csv(csv_file)
     df['histo'] = df['histo'].apply(literal_eval) # convert histo (str) into a list
+    print(df)
     GoldenJson17 = json.load(open('data/GoldenJSON17.json'))
     BadJson17 = json.load(open('data/JsonBAD17.json'))
+    df.set_index(['fromrun','fromlumi'], inplace=True, drop=False)
+    df.sort_index(inplace=True)
     if not 'Json' in df:
        df["Json"]=False
        for run in df['fromrun'].unique():
@@ -31,8 +34,6 @@ def read_csv(csv_file, rn_samples=-1):
        for run in df['fromrun'].unique():
           for ls in df['fromlumi'][run]:
              df['DCSbit'][run][ls] = isDCSon( run, ls, GoldenJson17, BadJson17)
-    df.set_index(['fromrun','fromlumi'], inplace=True, drop=False)
-    df.sort_index(inplace=True)
     # select a random subset of the dataframe 
     if(rn_samples!=-1):
        df = df.loc[rn.sample(list(df.index), rn_samples)]
