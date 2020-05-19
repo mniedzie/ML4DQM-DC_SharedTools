@@ -36,7 +36,7 @@ if __name__ == '__main__' :
     seedfile = ''
     resamplingmethod = 'resample_bin_per_bin'
     noisemethod = '' # default empty string means no noise addition
-    nresamples = 1000
+    nresamples = 10
     figname = '' # default empty string means no plotting
     try:
         opts, args = getopt.getopt(sys.argv[1:],"hi:o:s:r:n",
@@ -46,25 +46,27 @@ if __name__ == '__main__' :
         print('test.py -i <inputfile> -s <seedfile> -o <outputfile> -r <resampling method> -n <noise method>')
         sys.exit(2)
     for opt, arg in opts:
+        print(opt,arg)
         if opt in ("-h", "--help"):
             print('test.py -i <inputfile> -s <seedfile> -o <outputfile> -r <resampling method> -n <noise method>')
             sys.exit()
-        elif opt in ("-i", "--infile"):
+        if opt in ("-i", "--infile"):
             inputfile = arg
-        elif opt in ("-o", "--outfile"):
+        if opt in ("-o", "--outfile"):
              outputfile = arg
-        elif opt in ("-s", "--seedfile"):
+        if opt in ("-s", "--seedfile"):
              seedfile = arg
-        elif opt in ("-r", "--resampling"):
+        if opt in ("-r", "--resampling"):
              resamplingmethod = arg
-        elif opt in ("-n", "--noise"):
+        if opt in ("-n", "--noise"):
              noisemethod = arg
-        elif opt in ("--nresamples"):
+        if opt in ("--nresamples"):
              nresamples = int(arg)
-        elif opt in ("--figname"):
+        if opt in ("--figname"):
              figname = arg
     print('Input file is        : "', inputfile ,'"')
     print('Output file is       : "', outputfile ,'"')
+    print('Figure saved to      : "', figname ,'"')
     print('Seed file is         : "', seedfile ,'"')
     print('Resampling method is : "', resamplingmethod ,'"')
     print('Noise method is      : "', noisemethod ,'"')
@@ -85,10 +87,9 @@ if __name__ == '__main__' :
 
     # read in the csv file, and if Json and DSC info is not there, insert it.
     # Warning: the Golden and Bad json files are hard coded in the function!
-    df = read_csv(inputfile, -1)
+    df = read_csv(inputfile, 10000)
     # uncomment this line to keep only histograms in golden json (if not filtered before)
     #df = df.loc[ df['Json'] == True ]
-    print('Input dataframe shape: ', df.shape )
 
     (hist,runnbs,lsnbs) = get_hist_values(df)
     # remove under- and overflow bins:
@@ -139,26 +140,3 @@ if __name__ == '__main__' :
         print('Output plots written to '+figname)
         sys.exit()
 
-
-# The lines below can be used to save the output to a simple csv file. 
-#    print("Used ", hist.shape[0], " histograms to generate: \n", ghist.shape[0], " new histograms using linear combinations of similar histograms, \n", mhist.shape[0], " histograms using migrations, \n", fhist.shape[0], " histograms using fourier noise\n")
-#
-#    output = np.concatenate((mhist, ghist, fhist))
-#    np.savetxt(outputfile, output, delimiter=",")
-
-
-
-
-
-
-#    colors = [cm.viridis(i) for i in np.linspace(0, 1, len( mcHist ))]
-#    for i in range(len(mcHist)):
-#        plt.plot(mcHist[i], color=colors[i])
-#    plt.plot(hist[0], color='red')
-#    plt.title('histograms generated with MC')
-#    plt.show()
-#
-#    ghist = resample_similar_lico( hist, nresamples=10, nonnegative=True, keeppercentage=0.1,whitenoisefactor=0.0)
-#    fhist = resample_similar_fourier_noise( hist, nresamples=20, nonnegative=False, keeppercentage=1.,whitenoisefactor=0.)
-#    mhist = migrations(hist, 2, 0.05)
-#

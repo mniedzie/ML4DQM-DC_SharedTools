@@ -18,8 +18,9 @@ def read_csv(csv_file, rn_samples=-1):
     if not os.path.exists(csv_file):
         print('requested csv file '+csv_file+' does not seem to exist...')
     df = pd.read_csv(csv_file)
+    # I throw out empty histograms
+    df = df.loc[ df['entries'] != 0 ]
     df['histo'] = df['histo'].apply(literal_eval) # convert histo (str) into a list
-    print(df)
     GoldenJson17 = json.load(open('data/GoldenJSON17.json'))
     BadJson17 = json.load(open('data/JsonBAD17.json'))
     df.set_index(['fromrun','fromlumi'], inplace=True, drop=False)

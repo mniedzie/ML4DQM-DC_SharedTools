@@ -289,8 +289,9 @@ def white_noise(hists,stdfactor=15.):
     # - hists: np array (nhists,nbins) containing input histograms
     # - stdfactor: scaling factor of white noise amplitude (higher factor = smaller noise)
 
-    (nbins,nhists) = hists.shape
-    reshists = np.zeros(nhists,nbins)
+    (nhists,nbins) = hists.shape
+    print(hists.shape)
+    reshists = np.zeros((nhists,nbins))
 
     for i in range(nhists):
         reshists[i,:] = hists[i,:] + np.multiply( np.random.normal(nbins), hists[i,:]/stdfactor)
