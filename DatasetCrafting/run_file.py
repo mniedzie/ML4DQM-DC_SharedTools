@@ -116,7 +116,7 @@ if __name__ == '__main__' :
     elif resamplingmethod == 'resample_similar_lico':
         resampled_hists = resample_similar_lico(hist,hist_seed,nresamples=nresamples)
     elif resamplingmethod == 'resample_similar_bin_per_bin':
-	resampled_hists = resample_similar_bin_per_bin(hist,hist_seed,nresamples=nresamples)
+         resampled_hists = resample_similar_bin_per_bin(hist,hist_seed,nresamples=nresamples)
     elif resamplingmethod == 'resample_bin_per_bin':
         resampled_hists = resample_bin_per_bin(hist,nresamples=nresamples)
     elif resamplingmethod == 'mc_sampling':
