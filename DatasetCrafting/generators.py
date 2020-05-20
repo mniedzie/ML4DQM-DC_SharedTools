@@ -74,7 +74,7 @@ def resample_similar_lico( allhists, selhists, outfilename='', figname='', nresa
     return reshists
 
 
-def resample_similar_fourier_noise( allhists, selhists, outfilename='', figname='', nresamples=0, nonnegative=False,
+def resample_similar_fourier_noise( allhists, selhists, outfilename='', figname='', nresamples=1, nonnegative=False,
                                    keeppercentage=1.):
     # apply fourier noise on mean histogram, 
     # where the mean is determined from a set of similar-looking histograms
@@ -134,6 +134,58 @@ def resample_similar_fourier_noise( allhists, selhists, outfilename='', figname=
 
     return reshists
 
+def resample_similar_bin_per_bin( allhists, selhists, outfilename='', figname='', nresamples=1, nonnegative=False,
+                                   keeppercentage=1.):
+    # resample from bin-per-bin probability distributions, but only from similar looking histograms.
+    # input args:
+    # - allhists: np array (nhists,nbins) containing all available histograms (to determine mean)
+    # - selhists: np array (nhists,nbins) conataining selected histograms used as seeds (e.g. 'good' histograms)
+    # - outfilename: path of csv file to write results to (default: no writing)
+    # - figname: path to figure plotting examples (default: no plotting)
+    # - nresamples: number of samples per input histogram in selhists
+    # - nonnegative: boolean whether or not to put all bins to minimum zero after applying noise
+    # - keeppercentage: percentage (between 1 and 100) of histograms in allhists to use per input histogram
+
+    # advantages: no assumptions on shape of noise,
+    #             can handle systematic shifts in histograms
+    # disadvantages: bins are treated independently from each other
+ 
+    # set some parameters
+    (nhists,nbins) = allhists.shape
+    (nsel,_) = selhists.shape
+    
+    # get array of moments (used to define similar histograms)
+    binwidth = 1./nbins
+    bincenters = np.linspace(binwidth/2,1-binwidth/2,num=nbins,endpoint=True)
+    orders = [0,1,2]
+    moments = np.zeros((nhists,len(orders)))
+    for i,j in enumerate(orders): moments[:,i] = moment(bincenters,rhist,j)
+    
+    # make resamples
+    reshists = np.zeros((nsel*nresamples,nbins))
+    for i in range(nsel):
+        # select similar histograms
+        thisdiff = moments_correlation_vector(moments,j)
+        #thisdiff = mse_correlation_vector(rhist,j)
+        threshold = np.percentile(thisdiff,keeppercentage)
+        simindices = np.nonzero(np.where(thisdiff<threshold,1,0))[0]
+	for j in range(nresamples):
+	    reshists[nresamples*i+j,:] = resample_bin_per_bin(allhists[simindices,:],
+								figname='',nresamples=1,nonnegative=nonnegative)[0,:]
+    if nonnegative: reshists = np.maximum(0,reshists)
+    np.random.shuffle(reshists)
+    nsim = len(simindices)
+    print('Note: bin-per-bin resampling performed on '+str(nsim)+' histograms.')
+    print('If this number is too low, existing histograms are drawn with too small variation.')
+    print('If this number is too high, systematic shifts of histograms can be averaged out.')
+        
+    # plot examples of good and bad histograms
+    if len(figname)>0: plot_data_and_gen(50,selhists,reshists,figname)
+
+    # store results if requested
+    if len(outfilename)>0: np.savetxt(outfilename.split('.')[0]+'.csv',reshists)
+        
+    return reshists
 
 def resample_bin_per_bin(hists,outfilename='',figname='',nresamples=0,nonnegative=False,smoothinghalfwidth=0):
     # do resampling from bin-per-bin probability distributions
