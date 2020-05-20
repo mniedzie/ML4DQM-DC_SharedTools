@@ -49,9 +49,9 @@ input_files = ['../../Scripts2020/ZeroBias_2017UL_DataFrame_ChargeInnerLayer4.tx
                '../../Scripts2020/ZeroBias_Full2017_DataFrame_1D_Sorted_NumberOfClustersInStrip.txt',
                '../../Scripts2020/ZeroBias_Full2017_DataFrame_1D_Sorted_NumberOfClustersInStrip.txt']
 
-#output_files = ['output/MainDiagonal_ex1',
-#                'output/MainDiagonal_ex2',
-#                'output/MainDiagonal_ex3']
+#output_files = ['output/seed_MainDiagonal_ex1',
+#                'output/seed_MainDiagonal_ex2',
+#                'output/seed_MainDiagonal_ex3']
 output_files = ['output/ChargeInnerLayer4_ex1',
                 'output/ChargeInnerLayer4_ex2',
                 'output/ChargeInnerLayer4_ex3',

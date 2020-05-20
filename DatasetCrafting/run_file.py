@@ -84,10 +84,12 @@ if __name__ == '__main__' :
     if not os.path.exists(os.path.dirname(figname)) and figname!='':
         os.makedirs(os.path.dirname(figname), exist_ok=True)
         figname = os.path.abspath(figname)
+    if not os.path.exists(os.path.dirname('seed_'+figname)) and figname!='':
+        os.makedirs(os.path.dirname('seed_'+figname), exist_ok=True)
 
     # read in the csv file, and if Json and DSC info is not there, insert it.
     # Warning: the Golden and Bad json files are hard coded in the function!
-    df = read_csv(inputfile, 10000)
+    df = read_csv(inputfile, -1)
     # uncomment this line to keep only histograms in golden json (if not filtered before)
     #df = df.loc[ df['Json'] == True ]
 
@@ -137,6 +139,7 @@ if __name__ == '__main__' :
     print('Output written to '+outputfile)
     if figname != '': 
         plot_data_and_gen(50,hist,smeared_hists,figname=figname)
+        plot_data_and_gen(1,hist_seed,hist_seed,figname='seed_'+figname)
         print('Output plots written to '+figname)
         sys.exit()
 

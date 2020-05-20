@@ -206,7 +206,7 @@ def fourier_noise_on_mean(hists,outfilename='',figname='',nresamples=0,nonnegati
     
     # generate data
     reshists = np.zeros((nresamples,nbins))
-    for i in range(nresamples): reshists[i,:] = histmean+goodnoise(nbins,histstd)
+    for i in range(nresamples): reshists[i,:] = histmean + goodnoise(nbins,histstd)
     if nonnegative:
         reshists = np.where(reshists>0,reshists,0)
         
@@ -340,7 +340,7 @@ def moments_correlation_vector(moments,index):
     # very similar to mse_correlation_vector but using histogram moments instead of full histograms for speed-up
     return mse_correlation_vector(moments,index)
 
-def goodnoise(nbins,fstd=None):
+def goodnoise( nbins, fstd=None):
     # generate one sample of 'good' noise consisting of fourier components
     # input args:
     # - nbins: number of bins, length of noise array to be sampled
@@ -416,6 +416,8 @@ def mse_correlation_vector(hists,index):
     # output:
     # - numpy array of length nhists containing mse of the indexed histogram with respect to all other histograms
     # WARNING: can be slow if called many times on a large collection of histograms with many bins.
+    # the code takes difference between moment values at position index and moments of all other histograms
+    # then squares it and calculates the mean of the (currently three) moments
     corvec = np.zeros(len(hists))
     temp = hists - np.tile(hists[index:index+1],(len(hists),1))
     temp = np.power(temp,2)
