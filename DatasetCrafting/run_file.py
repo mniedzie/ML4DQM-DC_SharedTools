@@ -140,8 +140,8 @@ if __name__ == '__main__' :
     np.savetxt(outputfile,smeared_hists)
     print('Output written to '+outputfile)
     if figname != '': 
-        plot_data_and_gen(50,hist,smeared_hists,figname=figname)
-        plot_data_and_gen(1,hist_seed,hist_seed,figname='seed_'+figname)
+        plot_data_and_gen( 50, hist, smeared_hists, figname=figname)
+        plot_seed_and_gen( hist_seed, smeared_hists, figname='seed_'+figname)
         print('Output plots written to '+figname)
         sys.exit()
 
