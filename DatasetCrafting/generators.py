@@ -16,7 +16,7 @@ from plotters import *
 
 ##### RESAMPLING METHODS #####
 
-def resample_similar_lico( allhists, selhists, outfilename='', figname='', nresamples=1, nonnegative=False,
+def resample_similar_lico( allhists, selhists, outfilename='', figname='', nresamples=1, nonnegative=True,
                           keeppercentage=1.):
     # take linear combinations of similar histograms
     # input arguments:
@@ -66,7 +66,7 @@ def resample_similar_lico( allhists, selhists, outfilename='', figname='', nresa
         
     # plot examples of good and bad histograms
     # use only those histograms from real data that were used to create the resamples
-    if len(figname)>0: plot_data_and_gen(50,allhists,reshists,figname)
+    if len(figname)>0: plot_data_and_gen(50,selhists,reshists,figname)
         
     # store results if requested
     if len(outfilename)>0: np.savetxt(outfilename.split('.')[0]+'.csv',reshists)
@@ -74,7 +74,7 @@ def resample_similar_lico( allhists, selhists, outfilename='', figname='', nresa
     return reshists
 
 
-def resample_similar_fourier_noise( allhists, selhists, outfilename='', figname='', nresamples=1, nonnegative=False,
+def resample_similar_fourier_noise( allhists, selhists, outfilename='', figname='', nresamples=0, nonnegative=True,
                                    keeppercentage=1.):
     # apply fourier noise on mean histogram, 
     # where the mean is determined from a set of similar-looking histograms
@@ -127,14 +127,14 @@ def resample_similar_fourier_noise( allhists, selhists, outfilename='', figname=
 
     # plot examples of good and bad histograms
     # use only those histograms from real data that were used to create the resamples
-    if len(figname)>0: plot_data_and_gen(50,allhists,reshists,figname)
+    if len(figname)>0: plot_data_and_gen(50,selhists,reshists,figname)
 
     # store results if requested
     if len(outfilename)>0: np.savetxt(outfilename.split('.')[0]+'.csv',reshists)
 
     return reshists
 
-def resample_similar_bin_per_bin( allhists, selhists, outfilename='', figname='', nresamples=1, nonnegative=False,
+def resample_similar_bin_per_bin( allhists, selhists, outfilename='', figname='', nresamples=1, nonnegative=True,
                                    keeppercentage=1.):
     # resample from bin-per-bin probability distributions, but only from similar looking histograms.
     # input args:
@@ -169,9 +169,9 @@ def resample_similar_bin_per_bin( allhists, selhists, outfilename='', figname=''
         #thisdiff = mse_correlation_vector(rhist,j)
         threshold = np.percentile(thisdiff,keeppercentage)
         simindices = np.nonzero(np.where(thisdiff<threshold,1,0))[0]
-	for j in range(nresamples):
-	    reshists[nresamples*i+j,:] = resample_bin_per_bin(allhists[simindices,:],
-								figname='',nresamples=1,nonnegative=nonnegative)[0,:]
+    for j in range(nresamples):
+        reshists[nresamples*i+j,:] = resample_bin_per_bin(allhists[simindices,:],
+           figname='',nresamples=1,nonnegative=nonnegative)[0,:]
     if nonnegative: reshists = np.maximum(0,reshists)
     np.random.shuffle(reshists)
     nsim = len(simindices)
@@ -187,7 +187,7 @@ def resample_similar_bin_per_bin( allhists, selhists, outfilename='', figname=''
         
     return reshists
 
-def resample_bin_per_bin(hists,outfilename='',figname='',nresamples=0,nonnegative=False,smoothinghalfwidth=0):
+def resample_bin_per_bin(hists,outfilename='',figname='',nresamples=0,nonnegative=True,smoothinghalfwidth=0):
     # do resampling from bin-per-bin probability distributions
     # input args:
     # - hists: np array (nhists,nbins) containing the histograms to draw new samples from
@@ -223,7 +223,7 @@ def resample_bin_per_bin(hists,outfilename='',figname='',nresamples=0,nonnegativ
     return reshists
 
 
-def fourier_noise_on_mean(hists,outfilename='',figname='',nresamples=0,nonnegative=False):
+def fourier_noise_on_mean(hists,outfilename='',figname='',nresamples=0,nonnegative=True):
     # apply fourier noise on the bin-per-bin mean histogram,
     # with amplitude scaling based on bin-per-bin std histogram.
     # input args:
@@ -299,7 +299,7 @@ def mc_sampling(hists, nMC=10000 , nresamples=10):
 
 ##### NOISE METHODS #####
 
-def fourier_noise(hists,outfilename='',figname='',nresamples=1,nonnegative=False,stdfactor=15.):
+def fourier_noise(hists,outfilename='',figname='',nresamples=1,nonnegative=True,stdfactor=15.):
     # apply fourier noise on randomly histograms with simple flat amplitude scaling.
     # input args: 
     # - hists: numpy array of shape (nhists,nbins) used for seeding

@@ -116,7 +116,7 @@ if __name__ == '__main__' :
     elif resamplingmethod == 'resample_similar_lico':
         resampled_hists = resample_similar_lico(hist,hist_seed,nresamples=nresamples)
     elif resamplingmethod == 'resample_similar_bin_per_bin':
-	resampled_hists = resample_similar_bin_per_bin(hist,hist_seed,nresamples=nresamples)
+        resampled_hists = resample_similar_bin_per_bin(hist,hist_seed,nresamples=nresamples)
     elif resamplingmethod == 'resample_bin_per_bin':
         resampled_hists = resample_bin_per_bin(hist,nresamples=nresamples)
     elif resamplingmethod == 'mc_sampling':
@@ -140,8 +140,8 @@ if __name__ == '__main__' :
     np.savetxt(outputfile,smeared_hists)
     print('Output written to '+outputfile)
     if figname != '': 
-        plot_data_and_gen(50,hist,smeared_hists,figname=figname)
-        plot_data_and_gen(1,hist_seed,hist_seed,figname='seed_'+figname)
+        plot_data_and_gen( 50, hist, smeared_hists, figname=figname)
+        plot_seed_and_gen( hist_seed, smeared_hists, figname='seed_'+figname)
         print('Output plots written to '+figname)
         sys.exit()
 
