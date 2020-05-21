@@ -7,6 +7,7 @@
 ################################################################################
 
 import os
+import subprocess
 
 resamp_methods = ['resample_similar_fourier_noise',
                   'resample_similar_lico',
@@ -18,6 +19,7 @@ noise_methods = ['',
                  'fourier_noise',
                  'migrations']
 
+'''
 seed_files = ['data/random_subset_MainDiagonal_1hist_ex1.txt',
               'data/random_subset_MainDiagonal_1hist_ex2.txt',
               'data/random_subset_MainDiagonal_1hist_ex3.txt']
@@ -65,8 +67,7 @@ output_files = ['output/ChargeInnerLayer4_ex1',
                 'output/NumberOfClustersInStrip_ex1',
                 'output/NumberOfClustersInStrip_ex2',
                 'output/NumberOfClustersInStrip_ex3']
-'''
-
+text_file = open("Error.txt", "w")
 for i in range(len(seed_files)):
     for j in resamp_methods:
         for k in noise_methods:
@@ -86,4 +87,10 @@ for i in range(len(seed_files)):
             command += k
             command += '.png'
             print(command)
-            os.system(command)
+            command_run = subprocess.call(command, shell=True)
+            if command_run == 0:
+                print('Succesfully generated histograms!')
+            else:
+                print('command failed, will save info to file')
+                text_file.write(command+'\n')
+text_file.close()

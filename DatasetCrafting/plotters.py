@@ -83,6 +83,7 @@ def plot_data_good_bad(nplot,rhist,ghist,bhist,figname='fig.png'):
     for i in randint[:10]: plt.plot(bhist[int(i),:],color='b')
     plt.title('artificial bad histograms')
     plt.savefig(figname.split('.')[0]+'_bad.png')
+    plt.close()
 
 def plot_data_and_gen(nplot,datahist,genhist,figname='fig.png'):
     # plot a couple of random examples from rhist (data), ghist (resampled 'good') and bhist (resampled 'bad')
@@ -106,6 +107,7 @@ def plot_data_and_gen(nplot,datahist,genhist,figname='fig.png'):
     for i in randint: plt.plot(genhist[int(i),:],color='b')
     plt.title('artificially generated histograms')
     plt.savefig(figname.split('.')[0]+'_gen.png')
+    plt.close()
 
 
 def plot_seed_and_gen(seedhist,genhist,figname='fig.png'):
@@ -126,6 +128,7 @@ def plot_seed_and_gen(seedhist,genhist,figname='fig.png'):
     plt.title('seed and resampled histograms')
     plt.legend()
     plt.savefig(figname.split('.')[0]+'_show.png')
+    plt.close()
 
 
 def plot_noise(noise,histstd=None,figname='fig.png'):
@@ -143,3 +146,4 @@ def plot_noise(noise,histstd=None,figname='fig.png'):
     plt.legend()
     plt.title('examples of noise')
     plt.savefig(figname.split('.')[0]+'_noise.png')
+    plt.close()
