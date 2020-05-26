@@ -6,9 +6,9 @@ Code to generate new histograms based on the histograms provided and the full se
 
 Example of the usage of the code:
 
-'''
+```
 python3 run_file.py -s data/random_subset_NumberOfClustersInStrip_1hist_ex3.txt -i data/ZeroBias_Full2017_DataFrame_1D_Sorted_NumberOfClustersInStrip.txt -r resample_similar_lico --noise white_noise --nresamples 10 --figname=output/NumberOfClustersInStrip_ex3_resample_similar_lico_white_noise.png
-'''
+```
 
 * -s or --seed defines the file with input histograms meant to be resampled. If seed file is not provided, a 10 random histograms will be chosen from the input file
 * -i or --infile defines the input file, with a set of same type of histograms as seed file. Preferably, this file should contain all available histograms of given type. These histograms are used to find a set of similar ones to the resampled histogram.
