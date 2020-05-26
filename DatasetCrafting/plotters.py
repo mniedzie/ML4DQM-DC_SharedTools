@@ -85,7 +85,7 @@ def plot_data_good_bad(nplot,rhist,ghist,bhist,figname='fig.png'):
     plt.savefig(figname.split('.')[0]+'_bad.png')
 
 def plot_data_and_gen(nplot,datahist,genhist,figname='fig.png'):
-    # plot a couple of random examples from rhist (data), ghist (resampled 'good') and bhist (resampled 'bad')
+    # plot a couple of random examples from datahist (data) and genhist (generated)
     # input:
     # - nplot: integer, maximum number of examples to plot
     # - datahist, genhist: numpy arrays of shape (nhists,nbins)
@@ -109,7 +109,7 @@ def plot_data_and_gen(nplot,datahist,genhist,figname='fig.png'):
 
 
 def plot_seed_and_gen(seedhist,genhist,figname='fig.png'):
-    # plot a couple of random examples from rhist (data), ghist (resampled 'good') and bhist (resampled 'bad')
+    # plot all histograms in seedhist (data), and genhist (generated)
     # input:
     # - datahist, genhist: numpy arrays of shape (nhists,nbins)
     # - figname: name of figure to plot
