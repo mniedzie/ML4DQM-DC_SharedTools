@@ -55,8 +55,8 @@ def resample_similar_lico( allhists, selhists, outfilename='', figname='', nresa
         #thisdiff = mse_correlation_vector(np.vstack((selhists[i],allhists)),0)[1:]
         threshold = np.percentile(thisdiff,keeppercentage)
         simindices = np.nonzero(np.where(thisdiff<=threshold,1,0))[0]
-    for j in range(nresamples):
-        reshists[nresamples*i+j,:] = random_lico(allhists[simindices,:])
+        for j in range(nresamples):
+            reshists[nresamples*i+j,:] = random_lico(allhists[simindices,:])
     if nonnegative: reshists = np.maximum(0,reshists)
     np.random.shuffle(reshists)
     nsim = len(simindices)
