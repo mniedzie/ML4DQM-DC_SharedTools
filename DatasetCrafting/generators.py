@@ -54,7 +54,7 @@ def resample_similar_lico( allhists, selhists, outfilename='', figname='', nresa
         thisdiff = moments_correlation_vector(np.vstack((selmoments[i],allmoments)),0)[1:]
         #thisdiff = mse_correlation_vector(np.vstack((selhists[i],allhists)),0)[1:]
         threshold = np.percentile(thisdiff,keeppercentage)
-        simindices = np.nonzero(np.where(thisdiff<threshold,1,0))[0]
+        simindices = np.nonzero(np.where(thisdiff<=threshold,1,0))[0]
     for j in range(nresamples):
         reshists[nresamples*i+j,:] = random_lico(allhists[simindices,:])
     if nonnegative: reshists = np.maximum(0,reshists)
@@ -114,7 +114,7 @@ def resample_similar_fourier_noise( allhists, selhists, outfilename='', figname=
         thisdiff = moments_correlation_vector(np.vstack((selmoments[i],allmoments)),0)[1:]
         #thisdiff = mse_correlation_vector(np.vstack((selhists[i],allhists)),0)[1:]
         threshold = np.percentile(thisdiff,keeppercentage)
-        simindices = np.nonzero(np.where(thisdiff<threshold,1,0))[0]
+        simindices = np.nonzero(np.where(thisdiff<=threshold,1,0))[0]
         for j in range(nresamples):
             reshists[nresamples*i+j,:] = fourier_noise_on_mean(allhists[simindices,:],
                                                                figname=figname,nresamples=1,nonnegative=nonnegative)[0,:]
@@ -158,17 +158,19 @@ def resample_similar_bin_per_bin( allhists, selhists, outfilename='', figname=''
     binwidth = 1./nbins
     bincenters = np.linspace(binwidth/2,1-binwidth/2,num=nbins,endpoint=True)
     orders = [0,1,2]
-    moments = np.zeros((nhists,len(orders)))
-    for i,j in enumerate(orders): moments[:,i] = moment(bincenters,allhists,j)
-    
-    # make resamples
+    allmoments = np.zeros((nhists,len(orders)))
+    for i,j in enumerate(orders): allmoments[:,i] = moment(bincenters,allhists,j)
+    selmoments = np.zeros((nsel,len(orders)))
+    for i,j in enumerate(orders): selmoments[:,i] = moment(bincenters,selhists,j)
+
+    # make resampled histograms
     reshists = np.zeros((nsel*nresamples,nbins))
     for i in range(nsel):
         # select similar histograms
-        thisdiff = moments_correlation_vector(moments,j)
-        #thisdiff = mse_correlation_vector(rhist,j)
+        thisdiff = moments_correlation_vector(np.vstack((selmoments[i],allmoments)),0)[1:]
+        #thisdiff = mse_correlation_vector(np.vstack((selhists[i],allhists)),0)[1:]
         threshold = np.percentile(thisdiff,keeppercentage)
-        simindices = np.nonzero(np.where(thisdiff<threshold,1,0))[0]
+        simindices = np.nonzero(np.where(thisdiff<=threshold,1,0))[0]
         for j in range(nresamples):
             reshists[nresamples*i+j,:] = resample_bin_per_bin(allhists[simindices,:],
                figname='',nresamples=1,nonnegative=nonnegative,smoothinghalfwidth=0)[0,:]
