@@ -74,7 +74,7 @@ def resample_similar_lico( allhists, selhists, outfilename='', figname='', nresa
     return reshists
 
 
-def resample_similar_fourier_noise( allhists, selhists, outfilename='', figname='', nresamples=0, nonnegative=True,
+def resample_similar_fourier_noise( allhists, selhists, outfilename='', figname='', nresamples=1, nonnegative=True,
                                    keeppercentage=1.):
     # apply fourier noise on mean histogram, 
     # where the mean is determined from a set of similar-looking histograms
@@ -117,7 +117,7 @@ def resample_similar_fourier_noise( allhists, selhists, outfilename='', figname=
         simindices = np.nonzero(np.where(thisdiff<threshold,1,0))[0]
         for j in range(nresamples):
             reshists[nresamples*i+j,:] = fourier_noise_on_mean(allhists[simindices,:],
-                                                               figname='',nresamples=1,nonnegative=nonnegative)[0,:]
+                                                               figname=figname,nresamples=1,nonnegative=nonnegative)[0,:]
     if nonnegative: reshists = np.maximum(0,reshists)
     np.random.shuffle(reshists)
     nsim = len(simindices)
@@ -159,7 +159,7 @@ def resample_similar_bin_per_bin( allhists, selhists, outfilename='', figname=''
     bincenters = np.linspace(binwidth/2,1-binwidth/2,num=nbins,endpoint=True)
     orders = [0,1,2]
     moments = np.zeros((nhists,len(orders)))
-    for i,j in enumerate(orders): moments[:,i] = moment(bincenters,rhist,j)
+    for i,j in enumerate(orders): moments[:,i] = moment(bincenters,allhists,j)
     
     # make resamples
     reshists = np.zeros((nsel*nresamples,nbins))
@@ -169,9 +169,9 @@ def resample_similar_bin_per_bin( allhists, selhists, outfilename='', figname=''
         #thisdiff = mse_correlation_vector(rhist,j)
         threshold = np.percentile(thisdiff,keeppercentage)
         simindices = np.nonzero(np.where(thisdiff<threshold,1,0))[0]
-    for j in range(nresamples):
-        reshists[nresamples*i+j,:] = resample_bin_per_bin(allhists[simindices,:],
-           figname='',nresamples=1,nonnegative=nonnegative)[0,:]
+        for j in range(nresamples):
+            reshists[nresamples*i+j,:] = resample_bin_per_bin(allhists[simindices,:],
+               figname='',nresamples=1,nonnegative=nonnegative)[0,:]
     if nonnegative: reshists = np.maximum(0,reshists)
     np.random.shuffle(reshists)
     nsim = len(simindices)
@@ -187,7 +187,7 @@ def resample_similar_bin_per_bin( allhists, selhists, outfilename='', figname=''
         
     return reshists
 
-def resample_bin_per_bin(hists,outfilename='',figname='',nresamples=0,nonnegative=True,smoothinghalfwidth=0):
+def resample_bin_per_bin(hists,outfilename='',figname='',nresamples=0,nonnegative=True,smoothinghalfwidth=2):
     # do resampling from bin-per-bin probability distributions
     # input args:
     # - hists: np array (nhists,nbins) containing the histograms to draw new samples from
@@ -255,6 +255,7 @@ def fourier_noise_on_mean(hists,outfilename='',figname='',nresamples=0,nonnegati
         plt.plot(histmean+histstd,color='r')
         plt.legend()
         plt.savefig(figname.split('.')[0]+'_meanstd.png')
+        plt.close()
     
     # generate data
     reshists = np.zeros((nresamples,nbins))
@@ -346,7 +347,7 @@ def white_noise(hists,stdfactor=15.):
     reshists = np.zeros((nhists,nbins))
 
     for i in range(nhists):
-        reshists[i,:] = hists[i,:] + np.multiply( np.random.normal(nbins), hists[i,:]/stdfactor)
+        reshists[i,:] = hists[i,:] + np.multiply( [np.random.normal(0) for _ in range(nbins) ], np.divide(hists[i,:],stdfactor) )
 
     return reshists
 

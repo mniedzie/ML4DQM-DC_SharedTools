@@ -112,13 +112,13 @@ if __name__ == '__main__' :
     resampled_hists = np.zeros(( nresamples, hist.shape[1]))
     smeared_hists = np.zeros(( nresamples, hist.shape[1]))
     if resamplingmethod == 'resample_similar_fourier_noise':
-        resampled_hists = resample_similar_fourier_noise(hist,hist_seed,nresamples=nresamples)
+        resampled_hists = resample_similar_fourier_noise(hist,hist_seed,nresamples=nresamples, figname=figname)
     elif resamplingmethod == 'resample_similar_lico':
-        resampled_hists = resample_similar_lico(hist,hist_seed,nresamples=nresamples)
+        resampled_hists = resample_similar_lico(hist,hist_seed,nresamples=nresamples, figname=figname)
     elif resamplingmethod == 'resample_similar_bin_per_bin':
-         resampled_hists = resample_similar_bin_per_bin(hist,hist_seed,nresamples=nresamples)
+        resampled_hists = resample_similar_bin_per_bin(hist,hist_seed,nresamples=nresamples, figname=figname)
     elif resamplingmethod == 'resample_bin_per_bin':
-        resampled_hists = resample_bin_per_bin(hist,nresamples=nresamples)
+        resampled_hists = resample_bin_per_bin(hist,nresamples=nresamples, figname=figname)
     elif resamplingmethod == 'mc_sampling':
         resampled_hists = mc_sampling(hist_seed,nresamples=nresamples)
      # to add: MC method
