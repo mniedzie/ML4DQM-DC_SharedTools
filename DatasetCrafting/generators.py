@@ -171,7 +171,7 @@ def resample_similar_bin_per_bin( allhists, selhists, outfilename='', figname=''
         simindices = np.nonzero(np.where(thisdiff<threshold,1,0))[0]
         for j in range(nresamples):
             reshists[nresamples*i+j,:] = resample_bin_per_bin(allhists[simindices,:],
-               figname='',nresamples=1,nonnegative=nonnegative)[0,:]
+               figname='',nresamples=1,nonnegative=nonnegative,smoothinghalfwidth=0)[0,:]
     if nonnegative: reshists = np.maximum(0,reshists)
     np.random.shuffle(reshists)
     nsim = len(simindices)
