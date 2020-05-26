@@ -135,7 +135,7 @@ def resample_similar_fourier_noise( allhists, selhists, outfilename='', figname=
     return reshists
 
 def resample_similar_bin_per_bin( allhists, selhists, outfilename='', figname='', nresamples=1, nonnegative=True,
-                                   keeppercentage=1.):
+                                   keeppercentage=1., smoothinghalfwidth=0.):
     # resample from bin-per-bin probability distributions, but only from similar looking histograms.
     # input args:
     # - allhists: np array (nhists,nbins) containing all available histograms (to determine mean)
@@ -145,6 +145,7 @@ def resample_similar_bin_per_bin( allhists, selhists, outfilename='', figname=''
     # - nresamples: number of samples per input histogram in selhists
     # - nonnegative: boolean whether or not to put all bins to minimum zero after applying noise
     # - keeppercentage: percentage (between 1 and 100) of histograms in allhists to use per input histogram
+    # - smoothinghalfwidth: halfwidth of smoothing procedure to apply on the result (default: no smoothing)
 
     # advantages: no assumptions on shape of noise,
     #             can handle systematic shifts in histograms
@@ -173,7 +174,7 @@ def resample_similar_bin_per_bin( allhists, selhists, outfilename='', figname=''
         simindices = np.nonzero(np.where(thisdiff<=threshold,1,0))[0]
         for j in range(nresamples):
             reshists[nresamples*i+j,:] = resample_bin_per_bin(allhists[simindices,:],
-               figname='',nresamples=1,nonnegative=nonnegative,smoothinghalfwidth=0)[0,:]
+               figname='',nresamples=1,nonnegative=nonnegative,smoothinghalfwidth=smoothinghalfwidth)[0,:]
     if nonnegative: reshists = np.maximum(0,reshists)
     np.random.shuffle(reshists)
     nsim = len(simindices)
@@ -189,7 +190,7 @@ def resample_similar_bin_per_bin( allhists, selhists, outfilename='', figname=''
         
     return reshists
 
-def resample_bin_per_bin(hists,outfilename='',figname='',nresamples=0,nonnegative=True,smoothinghalfwidth=2):
+def resample_bin_per_bin(hists,outfilename='',figname='',nresamples=0,nonnegative=True,smoothinghalfwidth=0):
     # do resampling from bin-per-bin probability distributions
     # input args:
     # - hists: np array (nhists,nbins) containing the histograms to draw new samples from
@@ -338,18 +339,19 @@ def fourier_noise(hists,outfilename='',figname='',nresamples=1,nonnegative=True,
 
     return reshists
 
-def white_noise(hists,stdfactor=15.):
+def white_noise(hists, nonnegative=True, stdfactor=15.):
     # apply white noise to the histograms in hists.
     # input args:
     # - hists: np array (nhists,nbins) containing input histograms
     # - stdfactor: scaling factor of white noise amplitude (higher factor = smaller noise)
 
     (nhists,nbins) = hists.shape
-    print(hists.shape)
     reshists = np.zeros((nhists,nbins))
 
     for i in range(nhists):
         reshists[i,:] = hists[i,:] + np.multiply( [np.random.normal(0) for _ in range(nbins) ], np.divide(hists[i,:],stdfactor) )
+    if nonnegative:
+        reshists = np.where(reshists>0,reshists,0)
 
     return reshists
 

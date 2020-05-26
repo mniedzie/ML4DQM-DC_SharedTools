@@ -9,18 +9,8 @@
 import os
 import subprocess
 
-resamp_methods = ['resample_similar_fourier_noise',
-                  'resample_similar_lico',
-		  'resample_similar_bin_per_bin',
-                  'resample_bin_per_bin',
-                  'mc_sampling'
-                  ]
-noise_methods = ['',
-                 'white_noise',
-                 'fourier_noise',
-                 'migrations'
-                 ]
-
+conf_files = ['configurations/ex1.cfg','configurations/ex2.cfg','configurations/ex3.cfg',
+		'configurations/ex4.cfg','configurations/ex5.cfg']
 seed_files = ['data/random_subset_MainDiagonal_1hist_ex1.txt']
 input_files = ['data/random_subset_MainDiagonal.txt']
 output_files = ['output/MainDiagonal_ex1.txt']
@@ -76,25 +66,15 @@ output_files = ['output/ChargeInnerLayer4_ex1',
                 'output/NumberOfClustersInStrip_ex3']
 '''
 
-text_file = open("Error.txt", "w")
+text_file = open("Error_conf.txt", "w")
 for i in range(len(seed_files)):
-    for j in resamp_methods:
-        for k in noise_methods:
-            command = 'python3 run_file.py -s '
+    for j in conf_files:
+            command = 'python3 run_file_conf.py -s '
             command += seed_files[i] 
             command += ' -i '
             command += input_files[i] 
-            command += ' -r '
+            command += ' -c '
             command += j
-            if k != '': command += ' --noise '
-            command += k
-            command += ' --nresamples 10 --figname='
-            command += output_files[i]
-            command += '_'
-            command += j
-            command += '_'
-            command += k
-            command += '.png'
             print(command)
             command_run = subprocess.call(command, shell=True)
             if command_run == 0:
