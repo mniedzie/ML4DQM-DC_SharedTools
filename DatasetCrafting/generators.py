@@ -117,7 +117,7 @@ def resample_similar_fourier_noise( allhists, selhists, outfilename='', figname=
         simindices = np.nonzero(np.where(thisdiff<=threshold,1,0))[0]
         for j in range(nresamples):
             reshists[nresamples*i+j,:] = fourier_noise_on_mean(allhists[simindices,:],
-                                                               figname=figname,nresamples=1,nonnegative=nonnegative)[0,:]
+                                                               figname='',nresamples=1,nonnegative=nonnegative)[0,:]
     if nonnegative: reshists = np.maximum(0,reshists)
     np.random.shuffle(reshists)
     nsim = len(simindices)
