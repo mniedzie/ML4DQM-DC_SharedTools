@@ -42,13 +42,13 @@ def resample_similar_lico( allhists, selhists, outfilename='', figname='', nresa
     binwidth = 1./nbins
     bincenters = np.linspace(binwidth/2,1-binwidth/2,num=nbins,endpoint=True)
     orders = [0,1,2]
-    allmoments = np.zeros((nhists,len(orders)))
+    allmoments = np.empty((nhists,len(orders)))
     for i,j in enumerate(orders): allmoments[:,i] = moment(bincenters,allhists,j)
-    selmoments = np.zeros((nsel,len(orders)))
+    selmoments = np.empty((nsel,len(orders)))
     for i,j in enumerate(orders): selmoments[:,i] = moment(bincenters,selhists,j)
     
     # make resampled histograms
-    reshists = np.zeros((nsel*nresamples,nbins))
+    reshists = np.empty((nsel*nresamples,nbins))
     for i in range(nsel):
         # select similar histograms
         thisdiff = moments_correlation_vector(np.vstack((selmoments[i],allmoments)),0)[1:]
@@ -102,13 +102,13 @@ def resample_similar_fourier_noise( allhists, selhists, outfilename='', figname=
     binwidth = 1./nbins
     bincenters = np.linspace(binwidth/2,1-binwidth/2,num=nbins,endpoint=True)
     orders = [0,1,2]
-    allmoments = np.zeros((nhists,len(orders)))
+    allmoments = np.empty((nhists,len(orders)))
     for i,j in enumerate(orders): allmoments[:,i] = moment(bincenters,allhists,j)
-    selmoments = np.zeros((nsel,len(orders)))
+    selmoments = np.empty((nsel,len(orders)))
     for i,j in enumerate(orders): selmoments[:,i] = moment(bincenters,selhists,j)
  
     # make resampled histograms
-    reshists = np.zeros((nsel*nresamples,nbins))
+    reshists = np.empty((nsel*nresamples,nbins))
     for i in range(nsel):
         # select similar histograms
         thisdiff = moments_correlation_vector(np.vstack((selmoments[i],allmoments)),0)[1:]
@@ -159,13 +159,13 @@ def resample_similar_bin_per_bin( allhists, selhists, outfilename='', figname=''
     binwidth = 1./nbins
     bincenters = np.linspace(binwidth/2,1-binwidth/2,num=nbins,endpoint=True)
     orders = [0,1,2]
-    allmoments = np.zeros((nhists,len(orders)))
+    allmoments = np.empty((nhists,len(orders)))
     for i,j in enumerate(orders): allmoments[:,i] = moment(bincenters,allhists,j)
-    selmoments = np.zeros((nsel,len(orders)))
+    selmoments = np.empty((nsel,len(orders)))
     for i,j in enumerate(orders): selmoments[:,i] = moment(bincenters,selhists,j)
 
     # make resampled histograms
-    reshists = np.zeros((nsel*nresamples,nbins))
+    reshists = np.empty((nsel*nresamples,nbins))
     for i in range(nsel):
         # select similar histograms
         thisdiff = moments_correlation_vector(np.vstack((selmoments[i],allmoments)),0)[1:]
@@ -209,7 +209,7 @@ def resample_bin_per_bin(hists,outfilename='',figname='',nresamples=0,nonnegativ
     nbins = hists.shape[1]
     
     # generate data
-    reshists = np.zeros((nresamples,nbins))
+    reshists = np.empty((nresamples,nbins))
     for i in range(nbins):
         col = np.random.choice(hists[:,i],size=nresamples,replace=True)
         reshists[:,i] = col
@@ -261,7 +261,7 @@ def fourier_noise_on_mean(hists,outfilename='',figname='',nresamples=0,nonnegati
         plt.close()
     
     # generate data
-    reshists = np.zeros((nresamples,nbins))
+    reshists = np.empty((nresamples,nbins))
     for i in range(nresamples): reshists[i,:] = histmean + goodnoise(nbins,histstd)
     if nonnegative:
         reshists = np.where(reshists>0,reshists,0)
@@ -319,7 +319,7 @@ def fourier_noise(hists,outfilename='',figname='',nresamples=1,nonnegative=True,
     (nhists,nbins) = hists.shape
     
     # generate data
-    reshists = np.zeros((nresamples*len(hists),nbins))
+    reshists = np.empty((nresamples*len(hists),nbins))
     for i in range(nhists):
         for j in range(nresamples):
             reshists[nresamples*i+j,:] = hists[i,:]+goodnoise(nbins,hists[i,:]/stdfactor)
@@ -346,7 +346,7 @@ def white_noise(hists, nonnegative=True, stdfactor=15.):
     # - stdfactor: scaling factor of white noise amplitude (higher factor = smaller noise)
 
     (nhists,nbins) = hists.shape
-    reshists = np.zeros((nhists,nbins))
+    reshists = np.empty((nhists,nbins))
 
     for i in range(nhists):
         reshists[i,:] = hists[i,:] + np.multiply( [np.random.normal(0) for _ in range(nbins) ], np.divide(hists[i,:],stdfactor) )
@@ -475,7 +475,7 @@ def mse_correlation_vector(hists,index):
     # WARNING: can be slow if called many times on a large collection of histograms with many bins.
     # the code takes difference between moment values at position index and moments of all other histograms
     # then squares it and calculates the mean of the (currently three) moments
-    corvec = np.zeros(len(hists))
+    corvec = np.empty(len(hists))
     temp = hists - np.tile(hists[index:index+1],(len(hists),1))
     temp = np.power(temp,2)
     corvec = np.mean(temp,axis=1)
@@ -483,7 +483,7 @@ def mse_correlation_vector(hists,index):
 
 def smoother(inarray,halfwidth):
     # smooth the rows of a 2D array using the 2*halfwidth+1 surrounding values.
-    outarray = np.zeros(inarray.shape)
+    outarray = np.empty(inarray.shape)
     nbins = inarray.shape[1]
     for j in range(nbins):
         crange = np.arange(max(0,j-halfwidth),min(nbins,j+halfwidth+1))

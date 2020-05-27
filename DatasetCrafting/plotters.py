@@ -110,7 +110,7 @@ def plot_data_and_gen(nplot,datahist,genhist,figname='fig.png'):
     plt.close()
 
 
-def plot_seed_and_gen(seedhist,genhist,figname='fig.png'):
+def plot_seed_and_gen( seedhist, genhist, figname='fig.png' ):
     # plot all histograms in seedhist (data), and genhist (generated)
     # input:
     # - datahist, genhist: numpy arrays of shape (nhists,nbins)
@@ -118,6 +118,7 @@ def plot_seed_and_gen(seedhist,genhist,figname='fig.png'):
 
     # make sure that figname contains absolute path
     figname = os.path.abspath(figname)
+    nresamp = int(genhist.shape[0]/seedhist.shape[0])
 
     # data
     plt.figure()
@@ -129,6 +130,16 @@ def plot_seed_and_gen(seedhist,genhist,figname='fig.png'):
     plt.legend()
     plt.savefig(figname.split('.')[0]+'_show.png')
     plt.close()
+    if nresamp!=genhist.shape[0]:
+        plt.figure()
+        for i in range(len(seedhist)): 
+            for j in range(i*nresamp,(i+1)*nresamp): plt.plot(genhist[j,:], color = gen_colors[j] )
+            plt.plot(seedhist[i,:], color = 'r',label='seed')
+            plt.title('seed and resampled histograms')
+            plt.legend()
+            plt.savefig(figname.split('.')[0]+'_show'+str(i)+'.png')
+            plt.close()
+
 
 
 def plot_noise(noise,histstd=None,figname='fig.png'):
