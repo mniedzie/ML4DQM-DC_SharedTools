@@ -111,9 +111,17 @@ if __name__ == '__main__' :
   
     # read in the seed file. If not provided, get 10 random histograms from the input file
     if seedfile!='':
-        df_seed = read_csv(seedfile, -1)
+        if seedfile.split('.')[1]=='csv' or seedfile.split('.')[1]=='txt':
+            print('Reading in seed from a csv file!')
+            df_seed = read_csv(seedfile, -1)
+        elif seedfile.split('.')[1]=='json':
+            print('Reading in seed json file, will pick seed from input file based on run numbers and lumi sections!')
+            df_seed = read_seed_json(df, seedfile)
+        else: 
+            print('### WARNING ###: WRONG seed file formet, taking random 10 histograms as seed when needed.')
+            df_seed = read_csv(inputfile, 10)
     else:
-        print('### WARNING ###: no seed file provided, taking random 10 histograms as seed when needed.')
+        print('### WARNING ###: no seed file nor json provided, taking random 10 histograms as seed when needed.')
         df_seed = read_csv(inputfile, 10)
     # uncomment this line to keep only histograms in golden json (if not filtered before)
     #df_seed = df_seed.loc[ df_seed['Json'] == True ]

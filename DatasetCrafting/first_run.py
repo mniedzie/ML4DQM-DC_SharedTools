@@ -109,7 +109,22 @@ if __name__ == '__main__' :
     np.savetxt(outputfile_sbpb,hists_sbpb)
     np.savetxt(outputfile_mc  ,hists_mc  )
 
-    plot_seed_and_gen( hist_seed, hists_sfn , figname='first_run/seed_test_sfn' )
-    plot_seed_and_gen( hist_seed, hists_sl  , figname='first_run/seed_test_sl'  )
-    plot_seed_and_gen( hist_seed, hists_sbpb, figname='first_run/seed_test_sbpb')
-    plot_seed_and_gen( hist_seed, hists_mc  , figname='first_run/seed_test_mc'  )
+    plot_seed_and_gen( hist_seed, hists_sfn ,               figname='first_run/test_sfn' )
+    plot_seed_and_gen( hist_seed, white_noise(hists_sfn),   figname='first_run/test_sfn_wn' )
+    plot_seed_and_gen( hist_seed, fourier_noise(hists_sfn), figname='first_run/test_sfn_fn' )
+    plot_seed_and_gen( hist_seed, migrations(hists_sfn),    figname='first_run/test_sfn_mi' )
+
+    plot_seed_and_gen( hist_seed, hists_sl,                figname='first_run/test_sl' )
+    plot_seed_and_gen( hist_seed, white_noise(hists_sl),   figname='first_run/test_sl_wn' )
+    plot_seed_and_gen( hist_seed, fourier_noise(hists_sl), figname='first_run/test_sl_fn' )
+    plot_seed_and_gen( hist_seed, migrations(hists_sl),    figname='first_run/test_sl_mi' )
+
+    plot_seed_and_gen( hist_seed, hists_sbpb,                figname='first_run/test_sbpb')
+    plot_seed_and_gen( hist_seed, white_noise(hists_sbpb),   figname='first_run/test_sbpb_wn')
+    plot_seed_and_gen( hist_seed, fourier_noise(hists_sbpb), figname='first_run/test_sbpb_fn')
+    plot_seed_and_gen( hist_seed, migrations(hists_sbpb),    figname='first_run/test_sbpb_mi')
+    
+    plot_seed_and_gen( hist_seed, hists_mc,                figname='first_run/test_mc' )
+    plot_seed_and_gen( hist_seed, white_noise(hists_mc),   figname='first_run/test_mc_wn' )
+    plot_seed_and_gen( hist_seed, fourier_noise(hists_mc), figname='first_run/test_mc_fn' )
+    plot_seed_and_gen( hist_seed, migrations(hists_mc),    figname='first_run/test_mc_mi' )

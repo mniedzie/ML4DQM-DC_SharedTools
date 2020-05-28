@@ -40,6 +40,18 @@ def read_csv(csv_file, rn_samples=-1):
        df = df.loc[rn.sample(list(df.index), rn_samples)]
     return df
 
+def read_seed_json(df, JsonPath):
+    #### Take input dataframe, and pick entries from JsonPath
+    SeedJson = json.load(open(JsonPath))
+    df.set_index(['fromrun','fromlumi'], inplace=True, drop=False)
+    df.sort_index(inplace=True)
+    df["Seed"]=False
+    for run in df['fromrun'].unique():
+       for ls in df['fromlumi'][run]:
+          df['Seed'][run][ls] = isInJson( run, ls, SeedJson)
+    df = df.loc[ df['Seed'] == True ]
+    return df
+
 def isInJson( run, ls, Json):
     #### check if run number 'run' and lumi section 'ls' is in  
 
