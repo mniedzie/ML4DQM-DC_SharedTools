@@ -27,7 +27,7 @@ For the first run of the code we recommend running the code on a set of example 
 python3 first_run.py --seedfile <seed_file_path> --infile <input_file_path> --outfile <output_file_path>
 ```
 The input file should contain all available histograms of given type. These are used to find histograms similar to the seed histograms.
-The seed file should contain the examples of input histograms (in same dataframe format as used in whole ML4DQM method or as a json file, same format as Golden Json, with picked runs and lumisections). If no file is provided, 10 random histograms from input will be used.
+The seed file should contain the examples of input histograms (in same dataframe format as used in whole ML4DQM method or as a json file, same format as Golden Json, with picked runs and lumisections, example in ```data/SeedJson.json```). If no file is provided, 10 random histograms from input will be used.
 The output file will be used as a basis name to save the outputs (an abbreviation of each method name will be added at the end of the name). By default it is set to ```first_run/test.csv```.
 
 The plots with resampled histograms are saved in ```first_run/``` directory. The naming is "test+resamppling method abbreviation+noise method abbreviation". These are hardcoded, and generally meant as a first step to choose the optimal method. Further optimization of the algorithms should be done within configuration files, using the method explained below.
@@ -44,6 +44,10 @@ python3 run_file_conf.py -s <seed_file_path> -i <input_file_path> -c <config_fil
 * -o or --outfile deifnes the output csv file with resampled histograms. If not defined, some default filename is used.
 * -c or --configuration provides path to configuration file. The syntax of configuration file is well explained in ```configurations/example_configuration.cfg```.
 
+The example on how to run the code with files that are already available in the repository:
+```
+python3 run_file_conf.py -s data/random_subset_MainDiagonal_1hist_ex1.txt -i data/random_subset_MainDiagonal.txt -c configurations/ex3.cfg
+```
 
 Running the code with all parameters provided in command line should look like:
 ```
@@ -64,5 +68,11 @@ python3 run_file.py -s <seed_file> -i <input_file> -r <resample_method> --noise 
   * migrations
 * --nresamples defines how many histograms will be resampled from each input histogram.
 * --figname defines the base of the output figure. Be default some plots are printed, including the plots with resampled histograms with the seed histogram.
+
+The example on how to run the code with files that are already available in the repository:
+```
+python3 run_file.py -s data/random_subset_MainDiagonal_1hist_ex1.txt -i data/random_subset_MainDiagonal.txt -r resample_similar_lico --noise migrations --nresamples 10 --figname=output/MainDiagonal_ex1.txt_resample_similar_lico_migrations.png
+```
+
 
 Description of the algorithms can be found in the following [presentation](https://indico.cern.ch/event/921028/contributions/3869615/attachments/2043283/3422582/presentation.pdf)

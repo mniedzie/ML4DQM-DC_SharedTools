@@ -25,10 +25,10 @@ for i in range(len(seed_files)):
             command += ' -c '
             command += j
             print(command)
-#            command_run = subprocess.call(command, shell=True)
-#            if command_run == 0:
-#                print('Succesfully generated histograms!')
-#            else:
-#                print('command failed, will save info to file')
-#                text_file.write(command+'\n')
+            command_run = subprocess.call(command, shell=True)
+            if command_run == 0:
+                print('Succesfully generated histograms!')
+            else:
+                print('command failed, will save info to file')
+                text_file.write(command+'\n')
 text_file.close()
