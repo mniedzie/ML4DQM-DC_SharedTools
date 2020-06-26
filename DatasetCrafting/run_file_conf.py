@@ -74,8 +74,9 @@ if __name__ == '__main__' :
     if figname == 'none': figname = ''
     resampling_options = {}
     options_key = resamplingmethod+'_options'
-    for option in config[options_key]:
-        resampling_options[option] = config[options_key][option]
+    if resamplingmethod not in ['identity']:
+        for option in config[options_key]:
+            resampling_options[option] = config[options_key][option]
     noise_options = {}
     options_key = noisemethod+'_options'
     if noisemethod != '':
@@ -92,7 +93,8 @@ if __name__ == '__main__' :
         os.makedirs(os.path.dirname(outputfile), exist_ok=True)
         outputfile = os.path.abspath(outputfile)
     if not os.path.exists(os.path.dirname(figname)) and figname!='':
-        os.makedirs(os.path.dirname(figname), exist_ok=True)
+        dirname = os.path.dirname(figname)
+        if not dirname=='': os.makedirs(os.path.dirname(figname), exist_ok=True)
         figname = os.path.abspath(figname)
     if not os.path.exists(os.path.dirname('seed_'+figname)) and figname!='':
         os.makedirs(os.path.dirname('seed_'+figname), exist_ok=True)
@@ -129,7 +131,9 @@ if __name__ == '__main__' :
  
     resampled_hists = np.zeros(( nresamples, hist.shape[1]))
     smeared_hists = np.zeros(( nresamples, hist.shape[1]))
-    if resamplingmethod == 'resample_similar_fourier_noise':
+    if resamplingmethod == 'identity':
+        resampled_hists = np.tile(hist_seed,(nresamples,1))
+    elif resamplingmethod == 'resample_similar_fourier_noise':
         resampled_hists = resample_similar_fourier_noise(hist,hist_seed,nresamples=nresamples, 
 			    figname=figname,
 			    nonnegative=bool(resampling_options['nonnegative']),
