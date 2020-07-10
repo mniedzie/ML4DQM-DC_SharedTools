@@ -104,7 +104,7 @@ if __name__ == '__main__' :
         if seedfile.split('.')[1]=='csv' or seedfile.split('.')[1]=='txt':
             print('Reading in seed from a csv file!')
             df_seed = read_csv(seedfile, -1)
-        elif seedfile.split('.')[1]=='.json':
+        elif seedfile.split('.')[1]=='json':
             print('Reading in seed json file, will pick seed from input file based on run numbers and lumi sections!')
             df_seed = read_seed_json(df, seedfile)
         else: 

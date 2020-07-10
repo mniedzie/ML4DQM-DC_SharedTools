@@ -83,7 +83,15 @@ if __name__ == '__main__' :
   
     # read in the seed file. If not provided, get 10 random histograms from the input file
     if seedfile!='':
-        df_seed = read_csv(seedfile, -1)
+        if seedfile.split('.')[1]=='csv' or seedfile.split('.')[1]=='txt':
+            print('Reading in seed from a csv file!')
+            df_seed = read_csv(seedfile, -1)
+        elif seedfile.split('.')[1]=='json':
+            print('Reading in seed json file, will pick seed from input file based on run numbers and lumi sections!')
+            df_seed = read_seed_json(df, seedfile)
+        else: 
+            print('### WARNING ###: WRONG seed file format, taking random 10 histograms as seed when needed.')
+            df_seed = read_csv(inputfile, 10)
     else:
         print('No seed file provided, taking random 10 histograms as seed')
         df_seed = read_csv(inputfile, 10)
